@@ -1,141 +1,194 @@
 // =========================================================
-// GestãoPro — Layout Shell (Sidebar, Header, Hamburger)
-// EX1: navegação compartilhada, hamburger menu
+// GestãoPro — Layout Shell (EX1)
+// Gera HTML5 semântico: <aside><nav>, <header>, <main>, <footer>
+// Hamburger com aria-expanded, fecha em link/overlay/Esc
 // =========================================================
 
 const Layout = (() => {
+
   function init() {
     _buildShell();
     _setupHamburger();
     _markActive();
+    // Re-apply i18n after building the shell
+    if (typeof I18N !== 'undefined') I18N.applyAll();
   }
 
   function _buildShell() {
     const shellEl = document.getElementById('app-shell');
     if (!shellEl) return;
 
-    const page = shellEl.getAttribute('data-page') || '';
+    const page  = shellEl.getAttribute('data-page') || '';
     const title = shellEl.getAttribute('data-title') || 'GestãoPro';
     const userStr = sessionStorage.getItem('gestaopro_user');
-    const user = userStr ? JSON.parse(userStr) : null;
+    const user    = userStr ? JSON.parse(userStr) : null;
     const initials = user ? user.name.charAt(0).toUpperCase() : 'U';
+    const isAdmin  = user && user.role === 'admin';
 
-    const navLinks = [
-      { href: '../pages/dashboard.html', icon: '📊', key: 'nav.dashboard', id: 'dashboard' },
-      { href: '../pages/clientes.html',  icon: '👥', key: 'nav.customers',  id: 'clientes' },
-      { href: '../pages/fornecedores.html', icon: '🏭', key: 'nav.suppliers', id: 'fornecedores' },
-      { href: '../pages/produtos.html',  icon: '📦', key: 'nav.products',   id: 'produtos' },
-      { href: '../pages/vendas.html',    icon: '🛒', key: 'nav.sales',      id: 'vendas' },
-      { href: '../pages/pedidos.html',   icon: '📋', key: 'nav.orders',     id: 'pedidos' },
-      { href: '../pages/estoque.html',   icon: '🏪', key: 'nav.stock',      id: 'estoque' },
-      { href: '../pages/financeiro.html',icon: '💰', key: 'nav.financial',  id: 'financeiro' },
-      { href: '../pages/calculadora.html',icon: '🧮',key: 'nav.calculator', id: 'calculadora' },
-      { href: '../pages/usuarios.html',  icon: '⚙️', key: 'nav.users',      id: 'usuarios', adminOnly: true },
-      { href: '../pages/auditoria.html', icon: '🔍', key: 'nav.audit',      id: 'auditoria', adminOnly: true },
+    const mainLinks = [
+      { href: '/frontend/pages/dashboard.html',   icon: '📊', key: 'nav.dashboard',  id: 'dashboard' },
+      { href: '/frontend/pages/clientes.html',    icon: '👥', key: 'nav.customers',  id: 'clientes' },
+      { href: '/frontend/pages/fornecedores.html',icon: '🏭', key: 'nav.suppliers',  id: 'fornecedores' },
+      { href: '/frontend/pages/produtos.html',    icon: '📦', key: 'nav.products',   id: 'produtos' },
+      { href: '/frontend/pages/vendas.html',      icon: '🛒', key: 'nav.sales',      id: 'vendas' },
+      { href: '/frontend/pages/pedidos.html',     icon: '📋', key: 'nav.orders',     id: 'pedidos' },
+      { href: '/frontend/pages/estoque.html',     icon: '🏪', key: 'nav.stock',      id: 'estoque' },
+      { href: '/frontend/pages/financeiro.html',  icon: '💰', key: 'nav.financial',  id: 'financeiro' },
+      { href: '/frontend/pages/calculadora.html', icon: '🧮', key: 'nav.calculator', id: 'calculadora' },
+    ];
+    const adminLinks = [
+      { href: '/frontend/pages/usuarios.html',    icon: '⚙️', key: 'nav.users',      id: 'usuarios' },
+      { href: '/frontend/pages/auditoria.html',   icon: '🔍', key: 'nav.audit',      id: 'auditoria' },
     ];
 
-    const mainLinks = navLinks.filter(l => !l.adminOnly);
-    const adminLinks = navLinks.filter(l => l.adminOnly);
-    const isAdmin = user && user.role === 'admin';
+    const _navItem = l =>
+      `<a href="${l.href}" class="sidebar-link" data-nav="${l.id}" aria-label="${l.id}">
+        <span class="sidebar-link-icon" aria-hidden="true">${l.icon}</span>
+        <span class="sidebar-link-label" data-i18n="${l.key}"></span>
+      </a>`;
 
     shellEl.innerHTML = `
-      <div class="sidebar-overlay" id="sidebar-overlay"></div>
-      <aside class="sidebar" id="sidebar" role="navigation" aria-label="Menu principal">
-        <a href="../pages/dashboard.html" class="sidebar-logo">
-          <div class="sidebar-logo-icon">G</div>
+      <div class="sidebar-overlay" id="sidebar-overlay" role="presentation"></div>
+
+      <aside class="sidebar" id="sidebar">
+        <a href="/" class="sidebar-logo" aria-label="GestãoPro — página inicial">
+          <div class="sidebar-logo-icon" aria-hidden="true">G</div>
           <div>
-            <div class="sidebar-logo-text">GestãoPro</div>
+            <div class="sidebar-logo-text" data-i18n="app.name">GestãoPro</div>
             <div class="sidebar-logo-sub">ERP</div>
           </div>
         </a>
-        <nav class="sidebar-nav">
+
+        <nav class="sidebar-nav" aria-label="Menu principal">
           <div class="sidebar-section-title" data-i18n="nav.section_main"></div>
-          ${mainLinks.map(l => `
-            <a href="${l.href}" class="sidebar-link" data-nav="${l.id}">
-              <span class="sidebar-link-icon">${l.icon}</span>
-              <span class="sidebar-link-label" data-i18n="${l.key}"></span>
-            </a>
-          `).join('')}
+          ${mainLinks.map(_navItem).join('')}
           ${isAdmin ? `
             <div class="sidebar-section-title" data-i18n="nav.section_admin"></div>
-            ${adminLinks.map(l => `
-              <a href="${l.href}" class="sidebar-link" data-nav="${l.id}">
-                <span class="sidebar-link-icon">${l.icon}</span>
-                <span class="sidebar-link-label" data-i18n="${l.key}"></span>
-              </a>
-            `).join('')}
+            ${adminLinks.map(_navItem).join('')}
           ` : ''}
         </nav>
       </aside>
 
-      <header class="header" role="banner">
+      <header class="header" id="app-header" role="banner">
         <div class="header-left">
-          <button class="hamburger" id="hamburger-btn" aria-label="Abrir menu" aria-expanded="false">
-            <span></span><span></span><span></span>
+          <button class="hamburger" id="hamburger-btn"
+            aria-label="Abrir menu de navegação"
+            aria-expanded="false"
+            aria-controls="sidebar">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
           </button>
           <div>
-            <div class="header-title" id="header-title">${title}</div>
+            <h1 class="header-title" id="header-title">${title}</h1>
           </div>
         </div>
         <div class="header-right">
-          <button class="lang-selector" id="lang-toggle" aria-label="Trocar idioma"></button>
-          <div class="header-user">
-            <div class="header-avatar">${initials}</div>
+          <select class="lang-selector" id="lang-select" aria-label="Selecionar idioma" title="Idioma">
+            <option value="pt-BR">🇧🇷 PT</option>
+            <option value="en">🇺🇸 EN</option>
+            <option value="es">🇪🇸 ES</option>
+          </select>
+          <div class="header-user" role="status" aria-live="polite">
+            <div class="header-avatar" aria-hidden="true">${initials}</div>
             <span id="header-username">${user ? user.name : ''}</span>
+            <span class="header-role-badge" id="header-role"></span>
           </div>
-          <button class="btn btn-secondary btn-sm" id="btn-logout" data-i18n="auth.logout"></button>
+          <button class="btn btn-secondary btn-sm" id="btn-logout"
+            data-i18n="auth.logout"
+            aria-label="Sair do sistema">Sair</button>
         </div>
       </header>
 
-      <main class="main" id="main-content" role="main">
-        <!-- conteúdo da página inserido aqui -->
+      <main class="main" id="main-content" role="main" tabindex="-1">
+        <!-- conteúdo injetado pela página -->
       </main>
+
+      <footer class="app-footer" role="contentinfo">
+        <span data-i18n="app.name">GestãoPro</span>
+        &copy; <span id="footer-year"></span>
+        &mdash;
+        <span data-i18n="app.tagline">Sistema ERP Integrado</span>
+      </footer>
     `;
 
-    // Wire lang toggle
-    document.getElementById('lang-toggle')?.addEventListener('click', () => I18N.toggle());
+    document.getElementById('footer-year').textContent = new Date().getFullYear();
 
-    // Wire logout
+    // Language selector — sync with saved pref and handle change
+    const sel = document.getElementById('lang-select');
+    if (sel) {
+      const saved = localStorage.getItem('gestaopro_lang') || navigator.language || 'pt-BR';
+      // Normalize navigator.language (e.g. 'pt' → 'pt-BR')
+      const normalized = saved.startsWith('pt') ? 'pt-BR' : saved.startsWith('es') ? 'es' : 'en';
+      sel.value = normalized;
+      sel.addEventListener('change', () => I18N.load(sel.value));
+    }
+
+    // Update role badge
+    if (user) {
+      const badge = document.getElementById('header-role');
+      if (badge) {
+        badge.textContent = user.role;
+        badge.className = `header-role-badge role-${user.role}`;
+      }
+    }
+
+    // Logout
     document.getElementById('btn-logout')?.addEventListener('click', () => Auth.logout());
 
-    // Wire overlay
+    // Close sidebar when any nav link is clicked (mobile)
+    document.querySelectorAll('.sidebar-link').forEach(link =>
+      link.addEventListener('click', _closeSidebar)
+    );
+
+    // Overlay click closes sidebar
     document.getElementById('sidebar-overlay')?.addEventListener('click', _closeSidebar);
   }
 
   function _setupHamburger() {
     const btn = document.getElementById('hamburger-btn');
     if (!btn) return;
+
     btn.addEventListener('click', () => {
       const sidebar = document.getElementById('sidebar');
       const overlay = document.getElementById('sidebar-overlay');
-      const open = sidebar.classList.toggle('open');
+      const open    = sidebar.classList.toggle('open');
       overlay.classList.toggle('open', open);
       btn.classList.toggle('open', open);
-      btn.setAttribute('aria-expanded', open);
+      btn.setAttribute('aria-expanded', String(open));
+    });
+
+    // Close on Esc
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') _closeSidebar();
     });
   }
 
   function _closeSidebar() {
-    document.getElementById('sidebar')?.classList.remove('open');
-    document.getElementById('sidebar-overlay')?.classList.remove('open');
-    document.getElementById('hamburger-btn')?.classList.remove('open');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const btn     = document.getElementById('hamburger-btn');
+    if (sidebar) { sidebar.classList.remove('open'); }
+    if (overlay) { overlay.classList.remove('open'); }
+    if (btn)     { btn.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
   }
 
   function _markActive() {
     const path = window.location.pathname;
     document.querySelectorAll('.sidebar-link').forEach(link => {
       const href = link.getAttribute('href') || '';
-      if (path.endsWith(href.replace('../pages/', '').replace('./', ''))) {
+      // Match if path ends with the page filename
+      const hrefPage = href.split('/').pop();
+      if (hrefPage && path.endsWith(hrefPage)) {
         link.classList.add('active');
         link.setAttribute('aria-current', 'page');
       }
     });
+    // Special case: root → dashboard
+    if (path === '/' || path.endsWith('index.html')) {
+      document.querySelector('[data-nav="dashboard"]')?.classList.add('active');
+    }
   }
 
-  function setContent(html) {
-    const main = document.getElementById('main-content');
-    if (main) main.innerHTML = html;
-  }
-
-  return { init, setContent };
+  return { init };
 })();
