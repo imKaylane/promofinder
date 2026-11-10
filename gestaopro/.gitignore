@@ -1,0 +1,43 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+
+# Ambientes virtuais
+.venv/
+venv/
+env/
+
+# Variaveis de ambiente (nao versionar segredos)
+.env
+!.env.example
+
+# Testes
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Android / Mobile
+*.apk
+!releases/*.apk
+*.aab
+.gradle/
+local.properties
+*.iml
+mobile/.idea/
+mobile/app/build/
+mobile/build/
+mobile/.gradle/
+
+# DB / logs
+*.log
+*.sqlite3
+*.db

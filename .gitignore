@@ -1,0 +1,46 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+
+# Ambientes virtuais
+.venv/
+venv/
+env/
+
+# Variaveis de ambiente
+.env
+!.env.example
+
+# Testes
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Android
+*.apk
+!gestaopro/releases/*.apk
+*.aab
+.gradle/
+local.properties
+*.iml
+gestaopro/mobile/.idea/
+gestaopro/mobile/app/build/
+gestaopro/mobile/build/
+gestaopro/mobile/.gradle/
+
+# Outros
+*.log
+*.sqlite3
+*.db

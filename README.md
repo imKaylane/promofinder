@@ -1,3 +1,9 @@
+> **⚠️ Este repositório contém dois projetos.**
+> O projeto avaliado pela disciplina é o **GestãoPro ERP**, localizado na pasta [`gestaopro/`](gestaopro/).
+> Consulte o README do GestãoPro para instruções de execução: [`gestaopro/README.md`](gestaopro/README.md).
+
+---
+
 # TechDeals AI
 
 **Plataforma inteligente de busca, monitoramento e recomendação de promoções de tecnologia.**
