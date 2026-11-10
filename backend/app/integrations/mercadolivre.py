@@ -1,6 +1,7 @@
 """
-MercadoLivreService — centralised integration with the official MELI API (MLB).
+MercadoLivreService — integration with the official Mercado Livre API (MLB).
 All HTTP calls to api.mercadolibre.com go through this module only.
+No AI logic — pure HTTP client with retry and OAuth app-token support.
 """
 
 import asyncio
@@ -23,6 +24,8 @@ MELI_OAUTH = "https://api.mercadolibre.com/oauth/token"
 
 
 class MeliOffer:
+    """Normalised representation of a single Mercado Livre listing."""
+
     __slots__ = (
         "external_id", "title", "brand", "model",
         "price", "original_price", "currency",
@@ -37,6 +40,8 @@ class MeliOffer:
 
 
 class _TokenCache:
+    """In-process cache for the app-level OAuth access token."""
+
     def __init__(self):
         self._access_token: Optional[str] = None
         self._expires_at: Optional[datetime] = None
@@ -59,6 +64,8 @@ _token_cache = _TokenCache()
 
 
 class MercadoLivreService:
+    """Async context-manager client for the Mercado Livre REST API."""
+
     def __init__(self):
         self._client: Optional[httpx.AsyncClient] = None
 
@@ -66,7 +73,7 @@ class MercadoLivreService:
         self._client = httpx.AsyncClient(
             base_url=MELI_BASE,
             timeout=httpx.Timeout(15.0),
-            headers={"User-Agent": "TechDealsAI/1.0"},
+            headers={"User-Agent": "TechDeals/2.0"},
         )
         return self
 
@@ -74,6 +81,8 @@ class MercadoLivreService:
         if self._client:
             await self._client.aclose()
             self._client = None
+
+    # ─── OAuth app-token ────────────────────────────────────────────────────
 
     async def _get_app_token(self) -> Optional[str]:
         if not settings.MELI_CLIENT_ID or not settings.MELI_CLIENT_SECRET:
@@ -100,28 +109,32 @@ class MercadoLivreService:
     def _auth_headers(self, token: Optional[str]) -> dict:
         return {"Authorization": f"Bearer {token}"} if token else {}
 
+    # ─── Core HTTP ──────────────────────────────────────────────────────────
+
     @retry(
-        retry=retry_if_exception_type(Exception),
+        retry=retry_if_exception_type(httpx.HTTPStatusError),
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=2, max=30),
         before_sleep=before_sleep_log(logger, logging.WARNING),
         reraise=True,
     )
-    async def _get(self, path: str, params: Optional[dict] = None, token: Optional[str] = None) -> dict:
+    async def _get(self, path: str, params: Optional[dict] = None, token: Optional[str] = None) -> Any:
         assert self._client, "Use MercadoLivreService as async context manager"
         headers = self._auth_headers(token)
         resp = await self._client.get(path, params=params, headers=headers)
         if resp.status_code == 401:
             _token_cache.clear()
-            raise httpx.HTTPStatusError("401", request=resp.request, response=resp)
+            raise httpx.HTTPStatusError("401 Unauthorized", request=resp.request, response=resp)
         if resp.status_code == 403:
             raise PermissionError(f"MELI 403 on {path}")
         if resp.status_code == 429:
             retry_after = int(resp.headers.get("Retry-After", "5"))
             await asyncio.sleep(retry_after)
-            raise httpx.HTTPStatusError("429", request=resp.request, response=resp)
+            raise httpx.HTTPStatusError("429 Too Many Requests", request=resp.request, response=resp)
         resp.raise_for_status()
         return resp.json()
+
+    # ─── Public API methods ─────────────────────────────────────────────────
 
     async def search(
         self,
@@ -135,6 +148,12 @@ class MercadoLivreService:
         offset: int = 0,
         limit: int = 50,
     ) -> Dict[str, Any]:
+        """
+        Search Mercado Livre for items matching *query*.
+
+        Returns the raw API response dict which contains 'results' (list)
+        and 'paging' (total, offset, limit).
+        """
         token = await self._get_app_token()
         params: Dict[str, Any] = {
             "q": query,
@@ -159,6 +178,7 @@ class MercadoLivreService:
         return await self._get(f"/sites/{settings.MELI_SITE_ID}/search", params=params, token=token)
 
     async def get_item(self, item_id: str) -> Optional[Dict[str, Any]]:
+        """Fetch a single item by its Mercado Livre item ID."""
         try:
             return await self._get(f"/items/{item_id}")
         except httpx.HTTPStatusError as exc:
@@ -167,6 +187,7 @@ class MercadoLivreService:
             raise
 
     async def get_items_batch(self, item_ids: List[str]) -> List[Dict[str, Any]]:
+        """Fetch up to 20 items per API call in batched chunks."""
         if not item_ids:
             return []
         results = []
@@ -180,16 +201,20 @@ class MercadoLivreService:
         return results
 
     async def get_categories(self) -> List[Dict[str, Any]]:
+        """Return the top-level category list for the configured site."""
         data = await self._get(f"/sites/{settings.MELI_SITE_ID}/categories")
         return data if isinstance(data, list) else []
 
+    # ─── Result normalisation ───────────────────────────────────────────────
+
     @staticmethod
     def normalise_result(raw: Dict[str, Any]) -> MeliOffer:
+        """Convert a raw API result dict into a typed MeliOffer object."""
         shipping = raw.get("shipping") or {}
         seller = raw.get("seller") or {}
         seller_rep = (seller.get("seller_reputation") or {}).get("level_id")
-        brand = None
-        model = None
+        brand: Optional[str] = None
+        model: Optional[str] = None
         for attr in raw.get("attributes") or []:
             aid = attr.get("id", "")
             val = attr.get("value_name")
@@ -218,4 +243,5 @@ class MercadoLivreService:
 
     @classmethod
     def normalise_results(cls, raw_results: List[Dict[str, Any]]) -> List[MeliOffer]:
+        """Batch-normalise a list of raw API result dicts."""
         return [cls.normalise_result(r) for r in raw_results]

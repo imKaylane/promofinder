@@ -15,23 +15,27 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("TechDeals AI starting up…")
+    logger.info("TechDeals starting up…")
     await init_db()
     yield
-    logger.info("TechDeals AI shutting down.")
+    logger.info("TechDeals shutting down.")
 
 
 app = FastAPI(
-    title="TechDeals AI",
-    description="Intelligent platform for searching, monitoring, and recommending technology product deals.",
-    version="1.0.0",
+    title="TechDeals",
+    description=(
+        "Aggregator of technology product promotions. "
+        "Fetches live offers from Mercado Livre and ranks them using "
+        "deterministic price-history analysis."
+    ),
+    version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
     lifespan=lifespan,
 )
 
-# CORS — allow the React dev server and any mobile app origin.
+# CORS — allow the React dev server and any configured mobile app origin.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.BACKEND_CORS_ORIGINS,
@@ -45,4 +49,4 @@ app.include_router(api_router)
 
 @app.get("/health", tags=["health"])
 async def health():
-    return {"status": "ok", "version": "1.0.0"}
+    return {"status": "ok", "version": "2.0.0"}

@@ -164,29 +164,46 @@ class NotificationOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
-# ─── AI ──────────────────────────────────────────────────────────────────────
+# ─── Search ──────────────────────────────────────────────────────────────────
 
-class AISearchRequest(BaseModel):
-    query: str = Field(..., min_length=3, max_length=1000)
+class SearchRequest(BaseModel):
+    """Parameters for a Mercado Livre live search."""
+    query: str = Field(..., min_length=1, max_length=512)
+    category: Optional[str] = None
+    min_price: Optional[float] = Field(None, gt=0)
+    max_price: Optional[float] = Field(None, gt=0)
+    condition: Optional[str] = Field(None, pattern="^(new|used)$")
+    sort: Optional[str] = Field(None, pattern="^(price_asc|price_desc|relevance)$")
     page: int = Field(1, ge=1)
-    limit: int = Field(20, ge=1, le=100)
+    limit: int = Field(20, ge=1, le=50)
 
 
-class AISearchResponse(BaseModel):
-    interpreted_query: str
-    filters_extracted: dict
-    products: list
-    ai_summary: Optional[str] = None
-    ai_available: bool
+class SearchResultItem(BaseModel):
+    """A single normalised item returned by the live search."""
+    external_id: str
+    title: str
+    brand: Optional[str] = None
+    model: Optional[str] = None
+    price: float
+    original_price: Optional[float] = None
+    currency: str
+    url: str
+    thumbnail: Optional[str] = None
+    condition: str
+    free_shipping: bool
+    seller_name: Optional[str] = None
+    seller_reputation: Optional[str] = None
+    # Deterministic deal fields computed from seller data
+    discount_percent: Optional[float] = None
+    is_deal: bool = False
 
 
-class AIRecommendationRequest(BaseModel):
-    product_ids: List[UUID]
-    context: Optional[str] = None
-
-
-class AIDealAnalysisRequest(BaseModel):
-    offer_id: UUID
+class SearchResponse(BaseModel):
+    query: str
+    total: int
+    page: int
+    limit: int
+    items: List[SearchResultItem]
 
 
 # ─── Deals ───────────────────────────────────────────────────────────────────

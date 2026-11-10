@@ -28,15 +28,6 @@ class Settings(BaseSettings):
     MELI_MAX_REQUESTS_PER_MINUTE: int = 60
     MELI_CACHE_TTL_SECONDS: int = 300
 
-    # AI
-    AI_PROVIDER: str = "disabled"  # openai | watsonx | disabled
-    OPENAI_API_KEY: str = ""
-    OPENAI_MODEL: str = "gpt-4o-mini"
-    WATSONX_API_KEY: str = ""
-    WATSONX_PROJECT_ID: str = ""
-    WATSONX_URL: str = "https://us-south.ml.cloud.ibm.com"
-    WATSONX_MODEL_ID: str = "ibm/granite-13b-chat-v2"
-
     # Redis / Celery
     REDIS_URL: str = "redis://localhost:6379/0"
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"
