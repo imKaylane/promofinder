@@ -135,7 +135,9 @@
     "role": "Role",
     "status": "Status",
     "role_admin": "Administrator",
-    "role_user": "User"
+    "role_user": "User",
+    "role_vendedor": "Salesperson",
+    "role_financeiro": "Finance"
   },
   "audit": {
     "title": "Audit Log",
@@ -159,7 +161,12 @@
     "required": "Required field",
     "email_invalid": "Invalid email",
     "min_length": "Minimum {{n}} characters",
-    "positive_number": "Must be a positive number"
+    "positive_number": "Must be a positive number",
+    "cpf_invalid": "Invalid CPF",
+    "cnpj_invalid": "Invalid CNPJ",
+    "phone_invalid": "Invalid phone number",
+    "cep_invalid": "Invalid ZIP code",
+    "date_invalid": "Invalid date"
   },
   "messages": {
     "saved": "Saved successfully!",
@@ -167,10 +174,25 @@
     "error_generic": "An error occurred. Please try again.",
     "confirm_delete": "Are you sure you want to delete this record?",
     "no_results": "No results found.",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "in_use": "This record is in use and cannot be deleted.",
+    "network_error": "Cannot connect to server. Check your connection.",
+    "session_expired": "Your session has expired. Please sign in again."
   },
   "table": {
     "actions": "Actions",
     "showing": "Showing {{from}}–{{to}} of {{total}} records"
+  },
+  "errors": {
+    "VALIDATION_REQUIRED": "Required field",
+    "VALIDATION_EMAIL": "Invalid email",
+    "DUPLICATE_EMAIL": "Email already registered",
+    "DUPLICATE_SKU": "SKU already in use",
+    "DUPLICATE_DOCUMENT": "Document already registered",
+    "IN_USE": "Record is in use, cannot be deleted",
+    "NOT_FOUND": "Record not found",
+    "UNAUTHORIZED": "Unauthorized",
+    "FORBIDDEN": "You don't have permission for this action",
+    "INTERNAL_ERROR": "Internal server error"
   }
 }

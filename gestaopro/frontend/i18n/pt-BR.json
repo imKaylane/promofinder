@@ -135,7 +135,9 @@
     "role": "Perfil",
     "status": "Status",
     "role_admin": "Administrador",
-    "role_user": "Usuário"
+    "role_user": "Usuário",
+    "role_vendedor": "Vendedor",
+    "role_financeiro": "Financeiro"
   },
   "audit": {
     "title": "Auditoria",
@@ -159,7 +161,12 @@
     "required": "Campo obrigatório",
     "email_invalid": "E-mail inválido",
     "min_length": "Mínimo de {{n}} caracteres",
-    "positive_number": "Deve ser um número positivo"
+    "positive_number": "Deve ser um número positivo",
+    "cpf_invalid": "CPF inválido",
+    "cnpj_invalid": "CNPJ inválido",
+    "phone_invalid": "Telefone inválido",
+    "cep_invalid": "CEP inválido",
+    "date_invalid": "Data inválida"
   },
   "messages": {
     "saved": "Salvo com sucesso!",
@@ -167,10 +174,25 @@
     "error_generic": "Ocorreu um erro. Tente novamente.",
     "confirm_delete": "Tem certeza que deseja excluir este registro?",
     "no_results": "Nenhum resultado encontrado.",
-    "loading": "Carregando..."
+    "loading": "Carregando...",
+    "in_use": "Este registro está em uso e não pode ser excluído.",
+    "network_error": "Não foi possível conectar ao servidor. Verifique sua conexão.",
+    "session_expired": "Sua sessão expirou. Faça login novamente."
   },
   "table": {
     "actions": "Ações",
     "showing": "Exibindo {{from}}–{{to}} de {{total}} registros"
+  },
+  "errors": {
+    "VALIDATION_REQUIRED": "Campo obrigatório",
+    "VALIDATION_EMAIL": "E-mail inválido",
+    "DUPLICATE_EMAIL": "E-mail já cadastrado",
+    "DUPLICATE_SKU": "SKU já em uso",
+    "DUPLICATE_DOCUMENT": "Documento já cadastrado",
+    "IN_USE": "Registro em uso, não pode ser excluído",
+    "NOT_FOUND": "Registro não encontrado",
+    "UNAUTHORIZED": "Não autorizado",
+    "FORBIDDEN": "Sem permissão para esta ação",
+    "INTERNAL_ERROR": "Erro interno do servidor"
   }
 }

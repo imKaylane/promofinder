@@ -1,0 +1,198 @@
+{
+  "app": {
+    "name": "GestãoPro",
+    "tagline": "Sistema ERP Integrado"
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "logout": "Cerrar sesión",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "email_placeholder": "tu@correo.com",
+    "password_placeholder": "••••••••",
+    "welcome": "Bienvenido",
+    "sign_in_prompt": "Accede a tu cuenta GestãoPro",
+    "invalid_credentials": "Correo o contraseña incorrectos.",
+    "session_expired": "Sesión expirada. Inicia sesión de nuevo."
+  },
+  "nav": {
+    "section_main": "Menú Principal",
+    "section_admin": "Administración",
+    "dashboard": "Panel",
+    "customers": "Clientes",
+    "suppliers": "Proveedores",
+    "products": "Productos",
+    "sales": "Ventas",
+    "orders": "Pedidos",
+    "stock": "Inventario",
+    "financial": "Finanzas",
+    "calculator": "Calculadora",
+    "users": "Usuarios",
+    "audit": "Auditoría"
+  },
+  "dashboard": {
+    "title": "Panel",
+    "welcome": "Bienvenido, {{name}}",
+    "subtitle": "Resumen del sistema",
+    "kpi_customers": "Clientes",
+    "kpi_products": "Productos",
+    "kpi_sales_month": "Ventas del Mes",
+    "kpi_revenue": "Ingresos",
+    "recent_sales": "Ventas Recientes",
+    "quick_actions": "Acciones Rápidas",
+    "no_data": "Sin datos para mostrar"
+  },
+  "customers": {
+    "title": "Clientes",
+    "subtitle": "Registro y gestión de clientes",
+    "new": "Nuevo Cliente",
+    "edit": "Editar Cliente",
+    "name": "Nombre",
+    "email": "Correo electrónico",
+    "phone": "Teléfono",
+    "document": "Documento",
+    "address": "Dirección",
+    "city": "Ciudad",
+    "state": "Estado",
+    "zip": "Código Postal",
+    "status": "Estado",
+    "created_at": "Registrado el",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "search_placeholder": "Buscar por nombre o correo..."
+  },
+  "suppliers": {
+    "title": "Proveedores",
+    "subtitle": "Registro y gestión de proveedores",
+    "new": "Nuevo Proveedor",
+    "edit": "Editar Proveedor",
+    "company_name": "Razón Social",
+    "trade_name": "Nombre Comercial",
+    "cnpj": "NIT/RUC",
+    "email": "Correo electrónico",
+    "phone": "Teléfono",
+    "contact": "Contacto",
+    "address": "Dirección",
+    "category": "Categoría",
+    "status": "Estado",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "search_placeholder": "Buscar proveedor..."
+  },
+  "products": {
+    "title": "Productos",
+    "subtitle": "Registro y gestión de productos",
+    "new": "Nuevo Producto",
+    "edit": "Editar Producto",
+    "name": "Nombre",
+    "sku": "SKU",
+    "category": "Categoría",
+    "price": "Precio",
+    "cost": "Costo",
+    "stock_qty": "Inventario",
+    "unit": "Unidad",
+    "description": "Descripción",
+    "status": "Estado",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "search_placeholder": "Buscar producto..."
+  },
+  "sales": {
+    "title": "Ventas",
+    "subtitle": "Registro e historial de ventas",
+    "new": "Nueva Venta",
+    "customer": "Cliente",
+    "date": "Fecha",
+    "total": "Total",
+    "status": "Estado",
+    "items": "Artículos",
+    "payment": "Pago"
+  },
+  "orders": {
+    "title": "Pedidos",
+    "subtitle": "Gestión de pedidos"
+  },
+  "stock": {
+    "title": "Inventario",
+    "subtitle": "Control de inventario y movimientos"
+  },
+  "financial": {
+    "title": "Finanzas",
+    "subtitle": "Cuentas por pagar y cobrar"
+  },
+  "calculator": {
+    "title": "Calculadora",
+    "subtitle": "Calculadora financiera integrada",
+    "history": "Historial",
+    "clear_history": "Limpiar Historial"
+  },
+  "users": {
+    "title": "Usuarios",
+    "subtitle": "Gestión de usuarios y permisos",
+    "new": "Nuevo Usuario",
+    "name": "Nombre",
+    "email": "Correo electrónico",
+    "role": "Perfil",
+    "status": "Estado",
+    "role_admin": "Administrador",
+    "role_user": "Usuario",
+    "role_vendedor": "Vendedor",
+    "role_financeiro": "Finanzas"
+  },
+  "audit": {
+    "title": "Auditoría",
+    "subtitle": "Registro de actividades del sistema"
+  },
+  "actions": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "view": "Ver",
+    "confirm": "Confirmar",
+    "add": "Agregar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "back": "Volver",
+    "loading": "Cargando..."
+  },
+  "validation": {
+    "required": "Campo obligatorio",
+    "email_invalid": "Correo inválido",
+    "min_length": "Mínimo {{n}} caracteres",
+    "positive_number": "Debe ser un número positivo",
+    "cpf_invalid": "CPF inválido",
+    "cnpj_invalid": "CNPJ inválido",
+    "phone_invalid": "Teléfono inválido",
+    "cep_invalid": "Código postal inválido",
+    "date_invalid": "Fecha inválida"
+  },
+  "messages": {
+    "saved": "¡Guardado con éxito!",
+    "deleted": "¡Eliminado con éxito!",
+    "error_generic": "Ocurrió un error. Inténtalo de nuevo.",
+    "confirm_delete": "¿Estás seguro de que deseas eliminar este registro?",
+    "no_results": "No se encontraron resultados.",
+    "loading": "Cargando...",
+    "in_use": "Este registro está en uso y no puede ser eliminado.",
+    "network_error": "No se puede conectar al servidor. Verifica tu conexión.",
+    "session_expired": "Tu sesión ha expirado. Inicia sesión de nuevo."
+  },
+  "table": {
+    "actions": "Acciones",
+    "showing": "Mostrando {{from}}–{{to}} de {{total}} registros"
+  },
+  "errors": {
+    "VALIDATION_REQUIRED": "Campo obligatorio",
+    "VALIDATION_EMAIL": "Correo inválido",
+    "DUPLICATE_EMAIL": "Correo ya registrado",
+    "DUPLICATE_SKU": "SKU ya en uso",
+    "DUPLICATE_DOCUMENT": "Documento ya registrado",
+    "IN_USE": "Registro en uso, no se puede eliminar",
+    "NOT_FOUND": "Registro no encontrado",
+    "UNAUTHORIZED": "No autorizado",
+    "FORBIDDEN": "Sin permiso para esta acción",
+    "INTERNAL_ERROR": "Error interno del servidor"
+  }
+}
