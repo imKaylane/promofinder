@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GestãoPro — Usuários</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <div id="app-shell" data-page="usuarios" data-title="Usuários"></div>
+  <script src="../js/i18n.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/layout.js"></script>
+  <script>
+    if (!Auth.requireAuth()) {} else { Layout.init(); init(); }
+    function init() {
+      const main = document.getElementById('main-content');
+      main.innerHTML = `
+        <div class="page-header">
+          <div>
+            <h1 data-i18n="users.title">Usuários</h1>
+            <p style="color:var(--color-muted);font-size:13px" data-i18n="users.subtitle">Gerenciamento de usuários e permissões</p>
+          </div>
+          <button class="btn btn-primary"><span>+</span><span data-i18n="users.new">Novo Usuário</span></button>
+        </div>
+        <div class="card">
+          <div class="filter-bar">
+            <div class="search-input-wrap">
+              <span class="search-icon">🔍</span>
+              <input class="form-control" type="search" placeholder="Buscar usuário..." oninput="debounce(this.value)">
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th data-i18n="users.name">Nome</th>
+                <th data-i18n="users.email">E-mail</th>
+                <th data-i18n="users.role">Perfil</th>
+                <th data-i18n="users.status">Status</th>
+                <th>Criado em</th>
+                <th data-i18n="table.actions">Ações</th>
+              </tr></thead>
+              <tbody id="table-body"><tr><td colspan="6"><div class="empty-state"><div class="spinner"></div></div></td></tr></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="pagination"></div>
+        </div>`;
+      I18N.applyAll();
+      load();
+    }
+    let _t, _search='', _page=1, _limit=10;
+    function debounce(v){ clearTimeout(_t); _t=setTimeout(()=>{ _search=v; _page=1; load(); },350); }
+    async function load() {
+      const body = document.getElementById('table-body');
+      body.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="spinner"></div></div></td></tr>`;
+      try {
+        const params = new URLSearchParams({ page:_page, limit:_limit, ...(_search&&{search:_search}) });
+        const data = await Auth.fetchWithAuth(`/api/v1/admin/users?${params}`);
+        if(!data.items?.length){
+          body.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">⚙️</div><p>${I18N.t('messages.no_results')}</p></div></td></tr>`;
+          return;
+        }
+        body.innerHTML = data.items.map(u=>`
+          <tr>
+            <td><strong>${esc(u.name)}</strong></td>
+            <td>${esc(u.email)}</td>
+            <td><span class="badge ${u.role==='admin'?'badge-info':'badge-gray'}">${I18N.t('users.role_'+u.role)||u.role}</span></td>
+            <td><span class="badge ${u.is_active?'badge-success':'badge-gray'}">${u.is_active?'Ativo':'Inativo'}</span></td>
+            <td>${I18N.formatDate(u.created_at)}</td>
+            <td><div style="display:flex;gap:6px">
+              <button class="btn btn-secondary btn-sm btn-icon">✏️</button>
+              <button class="btn btn-danger btn-sm btn-icon">🗑️</button>
+            </div></td>
+          </tr>`).join('');
+        renderPag(data.total??0, data.pages??1);
+      } catch(e){
+        body.innerHTML=`<tr><td colspan="6"><div class="empty-state"><p>${I18N.t('messages.error_generic')}</p></div></td></tr>`;
+      }
+    }
+    function renderPag(total, pages){
+      const el=document.getElementById('pagination'); if(!el)return;
+      const from=(_page-1)*_limit+1, to=Math.min(_page*_limit,total);
+      el.innerHTML=`<span>${I18N.t('table.showing',{from,to,total})}</span>
+        <div class="pagination-pages">
+          <button class="pagination-btn" onclick="pg(${_page-1})" ${_page<=1?'disabled':''}>‹</button>
+          ${Array.from({length:Math.min(pages,7)},(_,i)=>{const p=i+1;return`<button class="pagination-btn ${p===_page?'active':''}" onclick="pg(${p})">${p}</button>`;}).join('')}
+          <button class="pagination-btn" onclick="pg(${_page+1})" ${_page>=pages?'disabled':''}>›</button>
+        </div>`;
+    }
+    function pg(p){ _page=p; load(); }
+    function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  </script>
+</body>
+</html>

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GestãoPro — Produtos</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <div id="app-shell" data-page="produtos" data-title="Produtos"></div>
+
+  <!-- Modal Criar/Editar Produto -->
+  <div class="modal-overlay" id="modal-product">
+    <div class="modal" style="max-width:600px">
+      <div class="modal-header">
+        <span class="modal-title" id="modal-product-title" data-i18n="products.new">Novo Produto</span>
+        <button class="modal-close" onclick="UI.closeModal('modal-product')">✕</button>
+      </div>
+      <form id="form-product" novalidate>
+        <input type="hidden" id="product-id">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group" style="grid-column:1/-1">
+              <label class="form-label" for="p-name" data-i18n="products.name">Nome</label>
+              <input class="form-control" id="p-name" data-required placeholder="Nome do produto">
+              <div class="form-error" id="p-name-err"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-sku" data-i18n="products.sku">SKU</label>
+              <input class="form-control" id="p-sku" data-required placeholder="PROD-001">
+              <div class="form-error" id="p-sku-err"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-category" data-i18n="products.category">Categoria</label>
+              <input class="form-control" id="p-category" placeholder="Eletrônicos">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-price" data-i18n="products.price">Preço (R$)</label>
+              <input class="form-control" id="p-price" type="number" step="0.01" min="0" data-required placeholder="0,00">
+              <div class="form-error" id="p-price-err"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-cost" data-i18n="products.cost">Custo (R$)</label>
+              <input class="form-control" id="p-cost" type="number" step="0.01" min="0" placeholder="0,00">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-stock" data-i18n="products.stock_qty">Estoque</label>
+              <input class="form-control" id="p-stock" type="number" min="0" value="0" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-unit" data-i18n="products.unit">Unidade</label>
+              <select class="form-control" id="p-unit">
+                <option value="un">Unidade (un)</option>
+                <option value="kg">Quilograma (kg)</option>
+                <option value="l">Litro (L)</option>
+                <option value="m">Metro (m)</option>
+                <option value="cx">Caixa (cx)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-status" data-i18n="products.status">Status</label>
+              <select class="form-control" id="p-status">
+                <option value="active" data-i18n="products.active">Ativo</option>
+                <option value="inactive" data-i18n="products.inactive">Inativo</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="p-description" data-i18n="products.description">Descrição</label>
+            <textarea class="form-control" id="p-description" rows="2" placeholder="Descrição do produto..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="UI.closeModal('modal-product')" data-i18n="actions.cancel">Cancelar</button>
+          <button type="submit" class="btn btn-primary btn-sm" id="btn-save-product" data-i18n="actions.save">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/i18n.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/layout.js"></script>
+  <script>
+    if (!Auth.requireAuth()) { /* redirect */ }
+    else { Layout.init(); initProducts(); }
+
+    let _page = 1;
+    const _limit = 10;
+    let _search = '';
+    let _total = 0;
+
+    function initProducts() {
+      const main = document.getElementById('main-content');
+      main.innerHTML = `
+        <div class="page-header">
+          <div>
+            <h1 data-i18n="products.title">Produtos</h1>
+            <p style="color:var(--color-muted);font-size:13px" data-i18n="products.subtitle">Cadastro e gerenciamento de produtos</p>
+          </div>
+          <button class="btn btn-primary" onclick="openCreate()">
+            <span>+</span><span data-i18n="products.new">Novo Produto</span>
+          </button>
+        </div>
+        <div class="card">
+          <div class="filter-bar">
+            <div class="search-input-wrap">
+              <span class="search-icon">🔍</span>
+              <input class="form-control" type="search" id="search-input"
+                data-i18n-placeholder="products.search_placeholder"
+                placeholder="Buscar produto..."
+                oninput="debounceSearch(this.value)">
+            </div>
+            <select class="form-control" style="max-width:140px" id="status-filter" onchange="loadProducts()">
+              <option value="">Todos</option>
+              <option value="active" data-i18n="products.active">Ativo</option>
+              <option value="inactive" data-i18n="products.inactive">Inativo</option>
+            </select>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th data-i18n="products.sku">SKU</th>
+                  <th data-i18n="products.name">Nome</th>
+                  <th data-i18n="products.category">Categoria</th>
+                  <th data-i18n="products.price">Preço</th>
+                  <th data-i18n="products.stock_qty">Estoque</th>
+                  <th data-i18n="products.status">Status</th>
+                  <th data-i18n="table.actions">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="products-body">
+                <tr><td colspan="7"><div class="empty-state"><div class="spinner"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="pagination"></div>
+        </div>
+      `;
+      I18N.applyAll();
+      loadProducts();
+    }
+
+    let _searchTimer;
+    function debounceSearch(val) {
+      clearTimeout(_searchTimer);
+      _searchTimer = setTimeout(() => { _search = val; _page = 1; loadProducts(); }, 350);
+    }
+
+    async function loadProducts() {
+      const body = document.getElementById('products-body');
+      const statusFilter = document.getElementById('status-filter')?.value || '';
+      const params = new URLSearchParams({
+        page: _page, limit: _limit,
+        ..._search && { search: _search },
+        ...(statusFilter && { status: statusFilter })
+      });
+      body.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="spinner"></div></div></td></tr>`;
+      try {
+        const data = await Auth.fetchWithAuth(`/api/v1/products?${params}`);
+        _total = data.total ?? 0;
+        renderProducts(data.items ?? []);
+        renderPagination(_total, data.pages ?? 1);
+      } catch (e) {
+        body.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">⚠️</div><p>${I18N.t('messages.error_generic')}</p></div></td></tr>`;
+      }
+    }
+
+    function renderProducts(items) {
+      const body = document.getElementById('products-body');
+      if (!items.length) {
+        body.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📦</div><p>${I18N.t('messages.no_results')}</p></div></td></tr>`;
+        return;
+      }
+      body.innerHTML = items.map(p => `
+        <tr>
+          <td><code style="font-size:12px;background:#f1f5f9;padding:2px 6px;border-radius:4px">${esc(p.sku || '—')}</code></td>
+          <td><strong>${esc(p.name)}</strong>${p.description ? `<br><small style="color:var(--color-muted)">${esc(p.description.substring(0,60))}${p.description.length>60?'…':''}</small>` : ''}</td>
+          <td>${esc(p.category || '—')}</td>
+          <td>${I18N.formatCurrency(p.price || 0)}</td>
+          <td>
+            <span style="font-weight:600;color:${(p.stock_qty||0) <= 5 ? 'var(--color-danger)' : 'inherit'}">${I18N.formatNumber(p.stock_qty || 0)}</span>
+            <span style="color:var(--color-muted);font-size:12px"> ${esc(p.unit || 'un')}</span>
+          </td>
+          <td><span class="badge ${p.status === 'active' ? 'badge-success' : 'badge-gray'}">${I18N.t('products.' + (p.status || 'active'))}</span></td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-secondary btn-sm btn-icon" title="${I18N.t('actions.edit')}" onclick="openEdit(${p.id})">✏️</button>
+              <button class="btn btn-danger btn-sm btn-icon" title="${I18N.t('actions.delete')}" onclick="deleteProduct(${p.id}, '${esc(p.name)}')">🗑️</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderPagination(total, pages) {
+      const el = document.getElementById('pagination');
+      if (!el) return;
+      const from = (_page - 1) * _limit + 1;
+      const to = Math.min(_page * _limit, total);
+      el.innerHTML = `
+        <span>${I18N.t('table.showing', { from, to, total })}</span>
+        <div class="pagination-pages">
+          <button class="pagination-btn" onclick="changePage(${_page - 1})" ${_page <= 1 ? 'disabled' : ''}>‹</button>
+          ${Array.from({ length: Math.min(pages, 7) }, (_, i) => {
+            const p = i + 1;
+            return `<button class="pagination-btn ${p === _page ? 'active' : ''}" onclick="changePage(${p})">${p}</button>`;
+          }).join('')}
+          <button class="pagination-btn" onclick="changePage(${_page + 1})" ${_page >= pages ? 'disabled' : ''}>›</button>
+        </div>
+      `;
+    }
+
+    function changePage(p) { _page = p; loadProducts(); }
+
+    function openCreate() {
+      document.getElementById('modal-product-title').setAttribute('data-i18n', 'products.new');
+      document.getElementById('product-id').value = '';
+      document.getElementById('form-product').reset();
+      I18N.applyAll();
+      UI.openModal('modal-product');
+    }
+
+    async function openEdit(id) {
+      document.getElementById('modal-product-title').setAttribute('data-i18n', 'products.edit');
+      I18N.applyAll();
+      UI.openModal('modal-product');
+      try {
+        const p = await Auth.fetchWithAuth(`/api/v1/products/${id}`);
+        document.getElementById('product-id').value = p.id;
+        document.getElementById('p-name').value = p.name || '';
+        document.getElementById('p-sku').value = p.sku || '';
+        document.getElementById('p-category').value = p.category || '';
+        document.getElementById('p-price').value = p.price || '';
+        document.getElementById('p-cost').value = p.cost || '';
+        document.getElementById('p-stock').value = p.stock_qty || 0;
+        document.getElementById('p-unit').value = p.unit || 'un';
+        document.getElementById('p-status').value = p.status || 'active';
+        document.getElementById('p-description').value = p.description || '';
+      } catch (e) { UI.toast(I18N.t('messages.error_generic'), 'error'); }
+    }
+
+    document.getElementById('form-product').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!UI.validateForm(e.target)) return;
+      const btn = document.getElementById('btn-save-product');
+      UI.btnLoading(btn, true);
+      const id = document.getElementById('product-id').value;
+      const payload = {
+        name: document.getElementById('p-name').value.trim(),
+        sku: document.getElementById('p-sku').value.trim(),
+        category: document.getElementById('p-category').value.trim(),
+        price: parseFloat(document.getElementById('p-price').value) || 0,
+        cost: parseFloat(document.getElementById('p-cost').value) || 0,
+        stock_qty: parseInt(document.getElementById('p-stock').value) || 0,
+        unit: document.getElementById('p-unit').value,
+        status: document.getElementById('p-status').value,
+        description: document.getElementById('p-description').value.trim(),
+      };
+      try {
+        if (id) {
+          await Auth.fetchWithAuth(`/api/v1/products/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+        } else {
+          await Auth.fetchWithAuth('/api/v1/products', { method: 'POST', body: JSON.stringify(payload) });
+        }
+        UI.closeModal('modal-product');
+        UI.toast(I18N.t('messages.saved'), 'success');
+        loadProducts();
+      } catch (err) {
+        UI.toast(err.message || I18N.t('messages.error_generic'), 'error');
+      } finally {
+        UI.btnLoading(btn, false);
+      }
+    });
+
+    function deleteProduct(id, name) {
+      UI.confirm(I18N.t('messages.confirm_delete') + ` (${name})`, async () => {
+        try {
+          await Auth.fetchWithAuth(`/api/v1/products/${id}`, { method: 'DELETE' });
+          UI.toast(I18N.t('messages.deleted'), 'success');
+          loadProducts();
+        } catch (e) { UI.toast(I18N.t('messages.error_generic'), 'error'); }
+      });
+    }
+
+    function esc(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+  </script>
+</body>
+</html>

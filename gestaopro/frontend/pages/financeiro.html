@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GestãoPro — Financeiro</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <div id="app-shell" data-page="financeiro" data-title="Financeiro"></div>
+  <script src="../js/i18n.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/layout.js"></script>
+  <script>
+    if (!Auth.requireAuth()) {} else { Layout.init(); init(); }
+    function init() {
+      const main = document.getElementById('main-content');
+      main.innerHTML = `
+        <div class="page-header">
+          <div>
+            <h1 data-i18n="financial.title">Financeiro</h1>
+            <p style="color:var(--color-muted);font-size:13px" data-i18n="financial.subtitle">Contas a pagar e a receber</p>
+          </div>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon green">💵</div>
+            <div>
+              <div class="kpi-value" id="kpi-receiv">—</div>
+              <div class="kpi-label">A Receber (venc. hoje)</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon amber">💸</div>
+            <div>
+              <div class="kpi-value" id="kpi-payab">—</div>
+              <div class="kpi-label">A Pagar (venc. hoje)</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon blue">📈</div>
+            <div>
+              <div class="kpi-value" id="kpi-balance">—</div>
+              <div class="kpi-label">Saldo do Mês</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px" class="fin-grid">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Contas a Receber</span>
+              <button class="btn btn-primary btn-sm">+ Nova</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Descrição</th><th>Vencimento</th><th>Valor</th><th>Status</th></tr></thead>
+                <tbody id="receivable-body"></tbody>
+              </table>
+            </div>
+            <div class="empty-state"><div class="empty-state-icon">💵</div><p data-i18n="messages.no_results">Sem registros.</p></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Contas a Pagar</span>
+              <button class="btn btn-primary btn-sm">+ Nova</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Descrição</th><th>Vencimento</th><th>Valor</th><th>Status</th></tr></thead>
+                <tbody id="payable-body"></tbody>
+              </table>
+            </div>
+            <div class="empty-state"><div class="empty-state-icon">💸</div><p data-i18n="messages.no_results">Sem registros.</p></div>
+          </div>
+        </div>`;
+      const style = document.createElement('style');
+      style.textContent = '@media(max-width:768px){.fin-grid{grid-template-columns:1fr!important}}';
+      document.head.appendChild(style);
+      I18N.applyAll();
+      load();
+    }
+    async function load() {
+      try {
+        const [rec, pay] = await Promise.allSettled([
+          Auth.fetchWithAuth('/api/v1/accounts/receivable?limit=5'),
+          Auth.fetchWithAuth('/api/v1/accounts/payable?limit=5'),
+        ]);
+        if(rec.status==='fulfilled') renderRows(rec.value?.items??[], 'receivable-body');
+        if(pay.status==='fulfilled') renderRows(pay.value?.items??[], 'payable-body');
+      } catch (_) {}
+    }
+    function renderRows(items, bodyId) {
+      const body = document.getElementById(bodyId);
+      body.innerHTML = items.map(a=>`
+        <tr>
+          <td>${esc(a.description||'—')}</td>
+          <td>${I18N.formatDate(a.due_date)}</td>
+          <td>${I18N.formatCurrency(a.amount||0)}</td>
+          <td><span class="badge ${a.status==='paid'?'badge-success':a.status==='overdue'?'badge-danger':'badge-warning'}">${esc(a.status||'pending')}</span></td>
+        </tr>`).join('');
+    }
+    function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  </script>
+</body>
+</html>

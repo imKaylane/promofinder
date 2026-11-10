@@ -1,0 +1,176 @@
+{
+  "app": {
+    "name": "GestãoPro",
+    "tagline": "Sistema ERP Integrado"
+  },
+  "auth": {
+    "login": "Entrar",
+    "logout": "Sair",
+    "email": "E-mail",
+    "password": "Senha",
+    "email_placeholder": "seu@email.com",
+    "password_placeholder": "••••••••",
+    "welcome": "Bem-vindo de volta",
+    "sign_in_prompt": "Acesse sua conta GestãoPro",
+    "invalid_credentials": "E-mail ou senha incorretos.",
+    "session_expired": "Sessão expirada. Faça login novamente."
+  },
+  "nav": {
+    "section_main": "Menu Principal",
+    "section_admin": "Administração",
+    "dashboard": "Dashboard",
+    "customers": "Clientes",
+    "suppliers": "Fornecedores",
+    "products": "Produtos",
+    "sales": "Vendas",
+    "orders": "Pedidos",
+    "stock": "Estoque",
+    "financial": "Financeiro",
+    "calculator": "Calculadora",
+    "users": "Usuários",
+    "audit": "Auditoria"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Bem-vindo, {{name}}",
+    "subtitle": "Visão geral do sistema",
+    "kpi_customers": "Clientes",
+    "kpi_products": "Produtos",
+    "kpi_sales_month": "Vendas no Mês",
+    "kpi_revenue": "Receita",
+    "recent_sales": "Vendas Recentes",
+    "quick_actions": "Ações Rápidas",
+    "no_data": "Sem dados para exibir"
+  },
+  "customers": {
+    "title": "Clientes",
+    "subtitle": "Cadastro e gerenciamento de clientes",
+    "new": "Novo Cliente",
+    "edit": "Editar Cliente",
+    "name": "Nome",
+    "email": "E-mail",
+    "phone": "Telefone",
+    "document": "CPF/CNPJ",
+    "address": "Endereço",
+    "city": "Cidade",
+    "state": "Estado",
+    "zip": "CEP",
+    "status": "Status",
+    "created_at": "Cadastrado em",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "search_placeholder": "Buscar por nome ou e-mail..."
+  },
+  "suppliers": {
+    "title": "Fornecedores",
+    "subtitle": "Cadastro e gerenciamento de fornecedores",
+    "new": "Novo Fornecedor",
+    "edit": "Editar Fornecedor",
+    "company_name": "Razão Social",
+    "trade_name": "Nome Fantasia",
+    "cnpj": "CNPJ",
+    "email": "E-mail",
+    "phone": "Telefone",
+    "contact": "Contato",
+    "address": "Endereço",
+    "category": "Categoria",
+    "status": "Status",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "search_placeholder": "Buscar fornecedor..."
+  },
+  "products": {
+    "title": "Produtos",
+    "subtitle": "Cadastro e gerenciamento de produtos",
+    "new": "Novo Produto",
+    "edit": "Editar Produto",
+    "name": "Nome",
+    "sku": "SKU",
+    "category": "Categoria",
+    "price": "Preço",
+    "cost": "Custo",
+    "stock_qty": "Estoque",
+    "unit": "Unidade",
+    "description": "Descrição",
+    "status": "Status",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "search_placeholder": "Buscar produto..."
+  },
+  "sales": {
+    "title": "Vendas",
+    "subtitle": "Registro e histórico de vendas",
+    "new": "Nova Venda",
+    "customer": "Cliente",
+    "date": "Data",
+    "total": "Total",
+    "status": "Status",
+    "items": "Itens",
+    "payment": "Pagamento"
+  },
+  "orders": {
+    "title": "Pedidos",
+    "subtitle": "Gerenciamento de pedidos"
+  },
+  "stock": {
+    "title": "Estoque",
+    "subtitle": "Controle de estoque e movimentações"
+  },
+  "financial": {
+    "title": "Financeiro",
+    "subtitle": "Contas a pagar e a receber"
+  },
+  "calculator": {
+    "title": "Calculadora",
+    "subtitle": "Calculadora financeira integrada",
+    "history": "Histórico",
+    "clear_history": "Limpar Histórico"
+  },
+  "users": {
+    "title": "Usuários",
+    "subtitle": "Gerenciamento de usuários e permissões",
+    "new": "Novo Usuário",
+    "name": "Nome",
+    "email": "E-mail",
+    "role": "Perfil",
+    "status": "Status",
+    "role_admin": "Administrador",
+    "role_user": "Usuário"
+  },
+  "audit": {
+    "title": "Auditoria",
+    "subtitle": "Registro de atividades do sistema"
+  },
+  "actions": {
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "view": "Visualizar",
+    "confirm": "Confirmar",
+    "add": "Adicionar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "back": "Voltar",
+    "loading": "Carregando..."
+  },
+  "validation": {
+    "required": "Campo obrigatório",
+    "email_invalid": "E-mail inválido",
+    "min_length": "Mínimo de {{n}} caracteres",
+    "positive_number": "Deve ser um número positivo"
+  },
+  "messages": {
+    "saved": "Salvo com sucesso!",
+    "deleted": "Excluído com sucesso!",
+    "error_generic": "Ocorreu um erro. Tente novamente.",
+    "confirm_delete": "Tem certeza que deseja excluir este registro?",
+    "no_results": "Nenhum resultado encontrado.",
+    "loading": "Carregando..."
+  },
+  "table": {
+    "actions": "Ações",
+    "showing": "Exibindo {{from}}–{{to}} de {{total}} registros"
+  }
+}

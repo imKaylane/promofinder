@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GestãoPro — Estoque</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <div id="app-shell" data-page="estoque" data-title="Estoque"></div>
+  <script src="../js/i18n.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/layout.js"></script>
+  <script>
+    if (!Auth.requireAuth()) {} else { Layout.init(); init(); }
+    function init() {
+      const main = document.getElementById('main-content');
+      main.innerHTML = `
+        <div class="page-header">
+          <div>
+            <h1 data-i18n="stock.title">Estoque</h1>
+            <p style="color:var(--color-muted);font-size:13px" data-i18n="stock.subtitle">Controle de estoque e movimentações</p>
+          </div>
+        </div>
+        <div class="kpi-grid" style="max-width:600px;margin-bottom:24px">
+          <div class="kpi-card">
+            <div class="kpi-icon green">📦</div>
+            <div>
+              <div class="kpi-value" id="kpi-total">—</div>
+              <div class="kpi-label">Produtos em Estoque</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon amber">⚠️</div>
+            <div>
+              <div class="kpi-value" id="kpi-low">—</div>
+              <div class="kpi-label">Estoque Baixo (≤ 5)</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Movimentações Recentes</span>
+            <button class="btn btn-primary btn-sm">+ Nova Movimentação</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Produto</th><th>Tipo</th><th>Qtd</th><th>Data</th><th>Responsável</th>
+              </tr></thead>
+              <tbody id="table-body"></tbody>
+            </table>
+          </div>
+          <div class="empty-state">
+            <div class="empty-state-icon">🏪</div>
+            <p data-i18n="messages.no_results">Nenhuma movimentação registrada.</p>
+          </div>
+        </div>`;
+      I18N.applyAll();
+      load();
+    }
+    async function load() {
+      try {
+        const data = await Auth.fetchWithAuth('/api/v1/stock/movements?limit=10');
+        const body = document.getElementById('table-body');
+        body.innerHTML = (data.items ?? []).map(m => `
+          <tr>
+            <td>${esc(m.product_name || m.product_id)}</td>
+            <td><span class="badge ${m.type==='in'?'badge-success':'badge-danger'}">${m.type==='in'?'Entrada':'Saída'}</span></td>
+            <td>${m.quantity}</td>
+            <td>${I18N.formatDate(m.created_at)}</td>
+            <td>${esc(m.user_name || '—')}</td>
+          </tr>`).join('');
+        document.getElementById('kpi-total').textContent = data.total_products ?? '0';
+        document.getElementById('kpi-low').textContent = data.low_stock_count ?? '0';
+      } catch (_) {}
+    }
+    function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  </script>
+</body>
+</html>

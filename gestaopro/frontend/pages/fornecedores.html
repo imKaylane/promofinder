@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GestãoPro — Fornecedores</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <div id="app-shell" data-page="fornecedores" data-title="Fornecedores"></div>
+
+  <div class="modal-overlay" id="modal-supplier">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title" id="modal-supplier-title" data-i18n="suppliers.new">Novo Fornecedor</span>
+        <button class="modal-close" onclick="UI.closeModal('modal-supplier')">✕</button>
+      </div>
+      <form id="form-supplier" novalidate>
+        <input type="hidden" id="supplier-id">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="s-company" data-i18n="suppliers.company_name">Razão Social</label>
+              <input class="form-control" id="s-company" data-required placeholder="Razão Social Ltda.">
+              <div class="form-error" id="s-company-err"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="s-trade" data-i18n="suppliers.trade_name">Nome Fantasia</label>
+              <input class="form-control" id="s-trade" placeholder="Nome Fantasia">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="s-cnpj" data-i18n="suppliers.cnpj">CNPJ</label>
+              <input class="form-control" id="s-cnpj" data-required placeholder="00.000.000/0000-00">
+              <div class="form-error" id="s-cnpj-err"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="s-email" data-i18n="suppliers.email">E-mail</label>
+              <input class="form-control" id="s-email" type="email" placeholder="contato@empresa.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="s-phone" data-i18n="suppliers.phone">Telefone</label>
+              <input class="form-control" id="s-phone" placeholder="(11) 3333-4444">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="s-contact" data-i18n="suppliers.contact">Contato</label>
+              <input class="form-control" id="s-contact" placeholder="Nome do responsável">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="s-category" data-i18n="suppliers.category">Categoria</label>
+              <input class="form-control" id="s-category" placeholder="Tecnologia, Alimentos...">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="s-status" data-i18n="suppliers.status">Status</label>
+              <select class="form-control" id="s-status">
+                <option value="active" data-i18n="suppliers.active">Ativo</option>
+                <option value="inactive" data-i18n="suppliers.inactive">Inativo</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="s-address" data-i18n="suppliers.address">Endereço</label>
+            <input class="form-control" id="s-address" placeholder="Endereço completo">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="UI.closeModal('modal-supplier')" data-i18n="actions.cancel">Cancelar</button>
+          <button type="submit" class="btn btn-primary btn-sm" id="btn-save-supplier" data-i18n="actions.save">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/i18n.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/layout.js"></script>
+  <script>
+    if (!Auth.requireAuth()) {} else { Layout.init(); init(); }
+
+    let _page=1, _limit=10, _search='', _total=0;
+
+    function init() {
+      const main = document.getElementById('main-content');
+      main.innerHTML = `
+        <div class="page-header">
+          <div><h1 data-i18n="suppliers.title">Fornecedores</h1><p style="color:var(--color-muted);font-size:13px" data-i18n="suppliers.subtitle"></p></div>
+          <button class="btn btn-primary" onclick="openCreate()"><span>+</span><span data-i18n="suppliers.new">Novo Fornecedor</span></button>
+        </div>
+        <div class="card">
+          <div class="filter-bar">
+            <div class="search-input-wrap">
+              <span class="search-icon">🔍</span>
+              <input class="form-control" type="search" id="search-input" data-i18n-placeholder="suppliers.search_placeholder" placeholder="Buscar fornecedor..." oninput="debounce(this.value)">
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th data-i18n="suppliers.company_name">Razão Social</th>
+                <th data-i18n="suppliers.cnpj">CNPJ</th>
+                <th data-i18n="suppliers.email">E-mail</th>
+                <th data-i18n="suppliers.phone">Telefone</th>
+                <th data-i18n="suppliers.status">Status</th>
+                <th data-i18n="table.actions">Ações</th>
+              </tr></thead>
+              <tbody id="table-body"><tr><td colspan="6"><div class="empty-state"><div class="spinner"></div></div></td></tr></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="pagination"></div>
+        </div>`;
+      I18N.applyAll();
+      load();
+    }
+
+    let _t;
+    function debounce(v){ clearTimeout(_t); _t=setTimeout(()=>{ _search=v; _page=1; load(); },350); }
+
+    async function load() {
+      const body = document.getElementById('table-body');
+      const params = new URLSearchParams({ page:_page, limit:_limit, ...(_search&&{search:_search}) });
+      body.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="spinner"></div></div></td></tr>`;
+      try {
+        const data = await Auth.fetchWithAuth(`/api/v1/suppliers?${params}`);
+        _total = data.total ?? 0;
+        if(!data.items?.length){
+          body.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">🏭</div><p>${I18N.t('messages.no_results')}</p></div></td></tr>`;
+          return;
+        }
+        body.innerHTML = data.items.map(s=>`
+          <tr>
+            <td><strong>${esc(s.company_name)}</strong>${s.trade_name?`<br><small style="color:var(--color-muted)">${esc(s.trade_name)}</small>`:''}</td>
+            <td>${esc(s.cnpj||'—')}</td>
+            <td>${esc(s.email||'—')}</td>
+            <td>${esc(s.phone||'—')}</td>
+            <td><span class="badge ${s.status==='active'?'badge-success':'badge-gray'}">${I18N.t('suppliers.'+(s.status||'active'))}</span></td>
+            <td><div style="display:flex;gap:6px">
+              <button class="btn btn-secondary btn-sm btn-icon" onclick="openEdit(${s.id})">✏️</button>
+              <button class="btn btn-danger btn-sm btn-icon" onclick="del(${s.id},'${esc(s.company_name)}')">🗑️</button>
+            </div></td>
+          </tr>`).join('');
+        renderPag(_total, data.pages??1);
+      } catch(e){
+        body.innerHTML=`<tr><td colspan="6"><div class="empty-state"><p>${I18N.t('messages.error_generic')}</p></div></td></tr>`;
+      }
+    }
+
+    function renderPag(total, pages){
+      const el=document.getElementById('pagination'); if(!el)return;
+      const from=(_page-1)*_limit+1, to=Math.min(_page*_limit,total);
+      el.innerHTML=`<span>${I18N.t('table.showing',{from,to,total})}</span>
+        <div class="pagination-pages">
+          <button class="pagination-btn" onclick="pg(${_page-1})" ${_page<=1?'disabled':''}>‹</button>
+          ${Array.from({length:Math.min(pages,7)},(_,i)=>{const p=i+1;return`<button class="pagination-btn ${p===_page?'active':''}" onclick="pg(${p})">${p}</button>`;}).join('')}
+          <button class="pagination-btn" onclick="pg(${_page+1})" ${_page>=pages?'disabled':''}>›</button>
+        </div>`;
+    }
+    function pg(p){ _page=p; load(); }
+
+    function openCreate(){ document.getElementById('supplier-id').value=''; document.getElementById('form-supplier').reset(); I18N.applyAll(); UI.openModal('modal-supplier'); }
+    async function openEdit(id){
+      UI.openModal('modal-supplier');
+      try{
+        const s=await Auth.fetchWithAuth(`/api/v1/suppliers/${id}`);
+        document.getElementById('supplier-id').value=s.id;
+        document.getElementById('s-company').value=s.company_name||'';
+        document.getElementById('s-trade').value=s.trade_name||'';
+        document.getElementById('s-cnpj').value=s.cnpj||'';
+        document.getElementById('s-email').value=s.email||'';
+        document.getElementById('s-phone').value=s.phone||'';
+        document.getElementById('s-contact').value=s.contact||'';
+        document.getElementById('s-category').value=s.category||'';
+        document.getElementById('s-address').value=s.address||'';
+        document.getElementById('s-status').value=s.status||'active';
+      }catch(e){ UI.toast(I18N.t('messages.error_generic'),'error'); }
+    }
+    document.getElementById('form-supplier').addEventListener('submit', async(e)=>{
+      e.preventDefault(); if(!UI.validateForm(e.target))return;
+      const btn=document.getElementById('btn-save-supplier'); UI.btnLoading(btn,true);
+      const id=document.getElementById('supplier-id').value;
+      const payload={
+        company_name:document.getElementById('s-company').value.trim(),
+        trade_name:document.getElementById('s-trade').value.trim(),
+        cnpj:document.getElementById('s-cnpj').value.trim(),
+        email:document.getElementById('s-email').value.trim(),
+        phone:document.getElementById('s-phone').value.trim(),
+        contact:document.getElementById('s-contact').value.trim(),
+        category:document.getElementById('s-category').value.trim(),
+        address:document.getElementById('s-address').value.trim(),
+        status:document.getElementById('s-status').value,
+      };
+      try{
+        if(id) await Auth.fetchWithAuth(`/api/v1/suppliers/${id}`,{method:'PUT',body:JSON.stringify(payload)});
+        else await Auth.fetchWithAuth('/api/v1/suppliers',{method:'POST',body:JSON.stringify(payload)});
+        UI.closeModal('modal-supplier'); UI.toast(I18N.t('messages.saved'),'success'); load();
+      }catch(err){ UI.toast(err.message||I18N.t('messages.error_generic'),'error'); }
+      finally{ UI.btnLoading(btn,false); }
+    });
+    function del(id,name){ UI.confirm(I18N.t('messages.confirm_delete')+` (${name})`,async()=>{
+      try{ await Auth.fetchWithAuth(`/api/v1/suppliers/${id}`,{method:'DELETE'}); UI.toast(I18N.t('messages.deleted'),'success'); load(); }
+      catch(e){ UI.toast(I18N.t('messages.error_generic'),'error'); }
+    }); }
+    function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  </script>
+</body>
+</html>

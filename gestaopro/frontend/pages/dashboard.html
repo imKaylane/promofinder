@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GestãoPro — Dashboard</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+
+  <!-- App Shell: sidebar + header + main são injetados pelo layout.js -->
+  <div id="app-shell" data-page="dashboard" data-title="Dashboard"></div>
+
+  <script src="../js/i18n.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/layout.js"></script>
+  <script>
+    if (!Auth.requireAuth()) { /* redirect happens inside */ }
+    else { Layout.init(); loadDashboard(); }
+
+    async function loadDashboard() {
+      const main = document.getElementById('main-content');
+      if (!main) return;
+      const user = Auth.getUser();
+      const firstName = user ? user.name.split(' ')[0] : '';
+
+      main.innerHTML = `
+        <div class="page-header">
+          <div>
+            <h1 data-i18n="dashboard.title">Dashboard</h1>
+            <p style="color:var(--color-muted);font-size:13px" data-i18n="dashboard.subtitle">Visão geral do sistema</p>
+          </div>
+          <span style="font-size:13px;color:var(--color-muted)">
+            ${new Intl.DateTimeFormat(I18N.getLang(), {weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date())}
+          </span>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon blue">👥</div>
+            <div>
+              <div class="kpi-value" id="kpi-customers">—</div>
+              <div class="kpi-label" data-i18n="dashboard.kpi_customers">Clientes</div>
+              <div class="kpi-delta up" id="kpi-customers-delta"></div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon green">📦</div>
+            <div>
+              <div class="kpi-value" id="kpi-products">—</div>
+              <div class="kpi-label" data-i18n="dashboard.kpi_products">Produtos</div>
+              <div class="kpi-delta" id="kpi-products-delta"></div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon amber">🛒</div>
+            <div>
+              <div class="kpi-value" id="kpi-sales">—</div>
+              <div class="kpi-label" data-i18n="dashboard.kpi_sales_month">Vendas no Mês</div>
+              <div class="kpi-delta up" id="kpi-sales-delta"></div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon purple">💰</div>
+            <div>
+              <div class="kpi-value" id="kpi-revenue">—</div>
+              <div class="kpi-label" data-i18n="dashboard.kpi_revenue">Receita</div>
+              <div class="kpi-delta up" id="kpi-revenue-delta"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Sales + Quick Actions -->
+        <div style="display:grid;grid-template-columns:1fr 320px;gap:20px" class="dashboard-grid">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title" data-i18n="dashboard.recent_sales">Vendas Recentes</span>
+              <a href="vendas.html" class="btn btn-secondary btn-sm" data-i18n="actions.view">Visualizar</a>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th data-i18n="customers.name">Cliente</th>
+                    <th data-i18n="sales.date">Data</th>
+                    <th data-i18n="sales.total">Total</th>
+                    <th data-i18n="sales.status">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="recent-sales-body">
+                  <tr><td colspan="4"><div class="empty-state" data-i18n="dashboard.no_data">Sem dados</div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title" data-i18n="dashboard.quick_actions">Ações Rápidas</span>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+              <a href="clientes.html" class="btn btn-secondary" style="justify-content:flex-start;gap:10px">
+                <span>👥</span><span data-i18n="customers.new">Novo Cliente</span>
+              </a>
+              <a href="produtos.html" class="btn btn-secondary" style="justify-content:flex-start;gap:10px">
+                <span>📦</span><span data-i18n="products.new">Novo Produto</span>
+              </a>
+              <a href="vendas.html" class="btn btn-secondary" style="justify-content:flex-start;gap:10px">
+                <span>🛒</span><span data-i18n="sales.new">Nova Venda</span>
+              </a>
+              <a href="fornecedores.html" class="btn btn-secondary" style="justify-content:flex-start;gap:10px">
+                <span>🏭</span><span data-i18n="suppliers.new">Novo Fornecedor</span>
+              </a>
+              <a href="calculadora.html" class="btn btn-secondary" style="justify-content:flex-start;gap:10px">
+                <span>🧮</span><span data-i18n="calculator.title">Calculadora</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Mobile: stack grid to single col
+      const styleTag = document.createElement('style');
+      styleTag.textContent = `@media(max-width:768px){.dashboard-grid{grid-template-columns:1fr!important}}`;
+      document.head.appendChild(styleTag);
+
+      // Apply i18n
+      I18N.applyAll();
+
+      // Load KPIs from API
+      await loadKPIs();
+    }
+
+    async function loadKPIs() {
+      try {
+        const [customersData, productsData] = await Promise.allSettled([
+          Auth.fetchWithAuth('/api/v1/customers?limit=1'),
+          Auth.fetchWithAuth('/api/v1/products?limit=1'),
+        ]);
+
+        if (customersData.status === 'fulfilled') {
+          document.getElementById('kpi-customers').textContent =
+            I18N.formatNumber(customersData.value?.total ?? 0);
+        } else { document.getElementById('kpi-customers').textContent = '0'; }
+
+        if (productsData.status === 'fulfilled') {
+          document.getElementById('kpi-products').textContent =
+            I18N.formatNumber(productsData.value?.total ?? 0);
+        } else { document.getElementById('kpi-products').textContent = '0'; }
+
+        document.getElementById('kpi-sales').textContent = '0';
+        document.getElementById('kpi-revenue').textContent = I18N.formatCurrency(0);
+      } catch (_) {
+        // API might not be running; show zeros
+        ['kpi-customers','kpi-products','kpi-sales'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = '0';
+        });
+        const rev = document.getElementById('kpi-revenue');
+        if (rev) rev.textContent = I18N.formatCurrency(0);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GestãoPro — Clientes</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+
+  <div id="app-shell" data-page="clientes" data-title="Clientes"></div>
+
+  <!-- Modal Criar/Editar Cliente -->
+  <div class="modal-overlay" id="modal-customer">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title" id="modal-customer-title" data-i18n="customers.new">Novo Cliente</span>
+        <button class="modal-close" onclick="UI.closeModal('modal-customer')">✕</button>
+      </div>
+      <form id="form-customer" novalidate>
+        <input type="hidden" id="customer-id">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="c-name" data-i18n="customers.name">Nome</label>
+              <input class="form-control" id="c-name" data-required placeholder="Nome completo">
+              <div class="form-error" id="c-name-err"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="c-email" data-i18n="customers.email">E-mail</label>
+              <input class="form-control" id="c-email" type="email" placeholder="email@exemplo.com">
+              <div class="form-error" id="c-email-err"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="c-phone" data-i18n="customers.phone">Telefone</label>
+              <input class="form-control" id="c-phone" placeholder="(11) 99999-9999">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="c-document" data-i18n="customers.document">CPF/CNPJ</label>
+              <input class="form-control" id="c-document" placeholder="000.000.000-00">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="c-city" data-i18n="customers.city">Cidade</label>
+              <input class="form-control" id="c-city" placeholder="São Paulo">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="c-state" data-i18n="customers.state">Estado</label>
+              <select class="form-control" id="c-state">
+                <option value="">Selecione...</option>
+                <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
+                <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+                <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
+                <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
+                <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+                <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
+                <option selected>SP</option><option>SE</option><option>TO</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="c-address" data-i18n="customers.address">Endereço</label>
+            <input class="form-control" id="c-address" placeholder="Rua, número, complemento">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="c-status" data-i18n="customers.status">Status</label>
+            <select class="form-control" id="c-status">
+              <option value="active" data-i18n="customers.active">Ativo</option>
+              <option value="inactive" data-i18n="customers.inactive">Inativo</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="UI.closeModal('modal-customer')" data-i18n="actions.cancel">Cancelar</button>
+          <button type="submit" class="btn btn-primary btn-sm" id="btn-save-customer" data-i18n="actions.save">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/i18n.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/layout.js"></script>
+  <script>
+    if (!Auth.requireAuth()) { /* redirect */ }
+    else { Layout.init(); initCustomers(); }
+
+    let _customers = [];
+    let _page = 1;
+    const _limit = 10;
+    let _search = '';
+    let _total = 0;
+
+    function initCustomers() {
+      const main = document.getElementById('main-content');
+      main.innerHTML = `
+        <div class="page-header">
+          <div>
+            <h1 data-i18n="customers.title">Clientes</h1>
+            <p style="color:var(--color-muted);font-size:13px" data-i18n="customers.subtitle">Cadastro e gerenciamento de clientes</p>
+          </div>
+          <button class="btn btn-primary" onclick="openCreate()">
+            <span>+</span><span data-i18n="customers.new">Novo Cliente</span>
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="filter-bar">
+            <div class="search-input-wrap">
+              <span class="search-icon">🔍</span>
+              <input class="form-control" type="search" id="search-input"
+                data-i18n-placeholder="customers.search_placeholder"
+                placeholder="Buscar por nome ou e-mail..."
+                oninput="debounceSearch(this.value)">
+            </div>
+            <select class="form-control" style="max-width:140px" id="status-filter" onchange="loadCustomers()">
+              <option value="">Todos</option>
+              <option value="active" data-i18n="customers.active">Ativo</option>
+              <option value="inactive" data-i18n="customers.inactive">Inativo</option>
+            </select>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th data-i18n="customers.name">Nome</th>
+                  <th data-i18n="customers.email">E-mail</th>
+                  <th data-i18n="customers.phone">Telefone</th>
+                  <th data-i18n="customers.city">Cidade</th>
+                  <th data-i18n="customers.status">Status</th>
+                  <th data-i18n="table.actions">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="customers-body">
+                <tr><td colspan="6"><div class="empty-state"><div class="spinner"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pagination" id="pagination"></div>
+        </div>
+      `;
+      I18N.applyAll();
+      loadCustomers();
+    }
+
+    let _searchTimer;
+    function debounceSearch(val) {
+      clearTimeout(_searchTimer);
+      _searchTimer = setTimeout(() => { _search = val; _page = 1; loadCustomers(); }, 350);
+    }
+
+    async function loadCustomers() {
+      const body = document.getElementById('customers-body');
+      const statusFilter = document.getElementById('status-filter')?.value || '';
+      const params = new URLSearchParams({
+        page: _page, limit: _limit, ..._search && { search: _search },
+        ...(statusFilter && { status: statusFilter })
+      });
+
+      body.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="spinner"></div></div></td></tr>`;
+
+      try {
+        const data = await Auth.fetchWithAuth(`/api/v1/customers?${params}`);
+        _total = data.total ?? 0;
+        renderCustomers(data.items ?? []);
+        renderPagination(_total, data.pages ?? 1);
+      } catch (e) {
+        body.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">⚠️</div><p>${I18N.t('messages.error_generic')}</p></div></td></tr>`;
+      }
+    }
+
+    function renderCustomers(items) {
+      const body = document.getElementById('customers-body');
+      if (!items.length) {
+        body.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">👥</div><p>${I18N.t('messages.no_results')}</p></div></td></tr>`;
+        return;
+      }
+      body.innerHTML = items.map(c => `
+        <tr>
+          <td><strong>${esc(c.name)}</strong></td>
+          <td>${esc(c.email || '—')}</td>
+          <td>${esc(c.phone || '—')}</td>
+          <td>${esc(c.city || '—')}${c.state ? '/' + c.state : ''}</td>
+          <td><span class="badge ${c.status === 'active' ? 'badge-success' : 'badge-gray'}">${I18N.t('customers.' + (c.status || 'active'))}</span></td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-secondary btn-sm btn-icon" title="${I18N.t('actions.edit')}" onclick="openEdit(${c.id})">✏️</button>
+              <button class="btn btn-danger btn-sm btn-icon" title="${I18N.t('actions.delete')}" onclick="deleteCustomer(${c.id}, '${esc(c.name)}')">🗑️</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderPagination(total, pages) {
+      const el = document.getElementById('pagination');
+      if (!el) return;
+      const from = (_page - 1) * _limit + 1;
+      const to = Math.min(_page * _limit, total);
+      el.innerHTML = `
+        <span>${I18N.t('table.showing', { from, to, total })}</span>
+        <div class="pagination-pages">
+          <button class="pagination-btn" onclick="changePage(${_page - 1})" ${_page <= 1 ? 'disabled' : ''}>‹</button>
+          ${Array.from({ length: Math.min(pages, 7) }, (_, i) => {
+            const p = i + 1;
+            return `<button class="pagination-btn ${p === _page ? 'active' : ''}" onclick="changePage(${p})">${p}</button>`;
+          }).join('')}
+          <button class="pagination-btn" onclick="changePage(${_page + 1})" ${_page >= pages ? 'disabled' : ''}>›</button>
+        </div>
+      `;
+    }
+
+    function changePage(p) { _page = p; loadCustomers(); }
+
+    function openCreate() {
+      document.getElementById('modal-customer-title').setAttribute('data-i18n', 'customers.new');
+      document.getElementById('customer-id').value = '';
+      document.getElementById('form-customer').reset();
+      I18N.applyAll();
+      UI.openModal('modal-customer');
+    }
+
+    async function openEdit(id) {
+      document.getElementById('modal-customer-title').setAttribute('data-i18n', 'customers.edit');
+      I18N.applyAll();
+      UI.openModal('modal-customer');
+      try {
+        const c = await Auth.fetchWithAuth(`/api/v1/customers/${id}`);
+        document.getElementById('customer-id').value = c.id;
+        document.getElementById('c-name').value = c.name || '';
+        document.getElementById('c-email').value = c.email || '';
+        document.getElementById('c-phone').value = c.phone || '';
+        document.getElementById('c-document').value = c.document || '';
+        document.getElementById('c-city').value = c.city || '';
+        document.getElementById('c-state').value = c.state || '';
+        document.getElementById('c-address').value = c.address || '';
+        document.getElementById('c-status').value = c.status || 'active';
+      } catch (e) { UI.toast(I18N.t('messages.error_generic'), 'error'); }
+    }
+
+    document.getElementById('form-customer').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!UI.validateForm(e.target)) return;
+      const btn = document.getElementById('btn-save-customer');
+      UI.btnLoading(btn, true);
+      const id = document.getElementById('customer-id').value;
+      const payload = {
+        name: document.getElementById('c-name').value.trim(),
+        email: document.getElementById('c-email').value.trim(),
+        phone: document.getElementById('c-phone').value.trim(),
+        document: document.getElementById('c-document').value.trim(),
+        city: document.getElementById('c-city').value.trim(),
+        state: document.getElementById('c-state').value,
+        address: document.getElementById('c-address').value.trim(),
+        status: document.getElementById('c-status').value,
+      };
+      try {
+        if (id) {
+          await Auth.fetchWithAuth(`/api/v1/customers/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+        } else {
+          await Auth.fetchWithAuth('/api/v1/customers', { method: 'POST', body: JSON.stringify(payload) });
+        }
+        UI.closeModal('modal-customer');
+        UI.toast(I18N.t('messages.saved'), 'success');
+        loadCustomers();
+      } catch (err) {
+        UI.toast(err.message || I18N.t('messages.error_generic'), 'error');
+      } finally {
+        UI.btnLoading(btn, false);
+      }
+    });
+
+    function deleteCustomer(id, name) {
+      UI.confirm(I18N.t('messages.confirm_delete') + ` (${name})`, async () => {
+        try {
+          await Auth.fetchWithAuth(`/api/v1/customers/${id}`, { method: 'DELETE' });
+          UI.toast(I18N.t('messages.deleted'), 'success');
+          loadCustomers();
+        } catch (e) { UI.toast(I18N.t('messages.error_generic'), 'error'); }
+      });
+    }
+
+    function esc(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+  </script>
+</body>
+</html>

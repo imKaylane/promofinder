@@ -1,0 +1,176 @@
+{
+  "app": {
+    "name": "GestãoPro",
+    "tagline": "Integrated ERP System"
+  },
+  "auth": {
+    "login": "Sign In",
+    "logout": "Sign Out",
+    "email": "Email",
+    "password": "Password",
+    "email_placeholder": "your@email.com",
+    "password_placeholder": "••••••••",
+    "welcome": "Welcome back",
+    "sign_in_prompt": "Sign in to your GestãoPro account",
+    "invalid_credentials": "Invalid email or password.",
+    "session_expired": "Session expired. Please sign in again."
+  },
+  "nav": {
+    "section_main": "Main Menu",
+    "section_admin": "Administration",
+    "dashboard": "Dashboard",
+    "customers": "Customers",
+    "suppliers": "Suppliers",
+    "products": "Products",
+    "sales": "Sales",
+    "orders": "Orders",
+    "stock": "Inventory",
+    "financial": "Finance",
+    "calculator": "Calculator",
+    "users": "Users",
+    "audit": "Audit Log"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome, {{name}}",
+    "subtitle": "System overview",
+    "kpi_customers": "Customers",
+    "kpi_products": "Products",
+    "kpi_sales_month": "Sales This Month",
+    "kpi_revenue": "Revenue",
+    "recent_sales": "Recent Sales",
+    "quick_actions": "Quick Actions",
+    "no_data": "No data to display"
+  },
+  "customers": {
+    "title": "Customers",
+    "subtitle": "Customer registration and management",
+    "new": "New Customer",
+    "edit": "Edit Customer",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "document": "Tax ID",
+    "address": "Address",
+    "city": "City",
+    "state": "State",
+    "zip": "ZIP Code",
+    "status": "Status",
+    "created_at": "Registered at",
+    "active": "Active",
+    "inactive": "Inactive",
+    "search_placeholder": "Search by name or email..."
+  },
+  "suppliers": {
+    "title": "Suppliers",
+    "subtitle": "Supplier registration and management",
+    "new": "New Supplier",
+    "edit": "Edit Supplier",
+    "company_name": "Company Name",
+    "trade_name": "Trade Name",
+    "cnpj": "Tax ID",
+    "email": "Email",
+    "phone": "Phone",
+    "contact": "Contact",
+    "address": "Address",
+    "category": "Category",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "search_placeholder": "Search supplier..."
+  },
+  "products": {
+    "title": "Products",
+    "subtitle": "Product registration and management",
+    "new": "New Product",
+    "edit": "Edit Product",
+    "name": "Name",
+    "sku": "SKU",
+    "category": "Category",
+    "price": "Price",
+    "cost": "Cost",
+    "stock_qty": "Stock",
+    "unit": "Unit",
+    "description": "Description",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "search_placeholder": "Search product..."
+  },
+  "sales": {
+    "title": "Sales",
+    "subtitle": "Sales records and history",
+    "new": "New Sale",
+    "customer": "Customer",
+    "date": "Date",
+    "total": "Total",
+    "status": "Status",
+    "items": "Items",
+    "payment": "Payment"
+  },
+  "orders": {
+    "title": "Orders",
+    "subtitle": "Order management"
+  },
+  "stock": {
+    "title": "Inventory",
+    "subtitle": "Stock control and movements"
+  },
+  "financial": {
+    "title": "Finance",
+    "subtitle": "Accounts payable and receivable"
+  },
+  "calculator": {
+    "title": "Calculator",
+    "subtitle": "Integrated financial calculator",
+    "history": "History",
+    "clear_history": "Clear History"
+  },
+  "users": {
+    "title": "Users",
+    "subtitle": "User and permission management",
+    "new": "New User",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "role_admin": "Administrator",
+    "role_user": "User"
+  },
+  "audit": {
+    "title": "Audit Log",
+    "subtitle": "System activity records"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "view": "View",
+    "confirm": "Confirm",
+    "add": "Add",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "back": "Back",
+    "loading": "Loading..."
+  },
+  "validation": {
+    "required": "Required field",
+    "email_invalid": "Invalid email",
+    "min_length": "Minimum {{n}} characters",
+    "positive_number": "Must be a positive number"
+  },
+  "messages": {
+    "saved": "Saved successfully!",
+    "deleted": "Deleted successfully!",
+    "error_generic": "An error occurred. Please try again.",
+    "confirm_delete": "Are you sure you want to delete this record?",
+    "no_results": "No results found.",
+    "loading": "Loading..."
+  },
+  "table": {
+    "actions": "Actions",
+    "showing": "Showing {{from}}–{{to}} of {{total}} records"
+  }
+}

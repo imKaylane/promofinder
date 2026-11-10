@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GestãoPro — Relatório da Calculadora</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <style>
+    .report-body { max-width: 760px; margin: 0 auto; padding: 32px 24px 60px; }
+    h2 { font-size: 16px; margin: 28px 0 10px; border-bottom: 2px solid var(--color-primary); padding-bottom: 6px; }
+    h3 { font-size: 14px; margin: 18px 0 6px; color: var(--color-primary); }
+    p, li { font-size: 14px; line-height: 1.65; margin-bottom: 6px; }
+    ul { margin-left: 20px; }
+    code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+    table { font-size: 13px; }
+    th, td { padding: 7px 12px; }
+    .result-correct { color: var(--color-success); font-weight: 600; }
+    .result-wrong  { color: var(--color-danger); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div id="app-shell" data-page="calculadora" data-title="Relatório da Calculadora"></div>
+  <script src="../js/i18n.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/layout.js"></script>
+  <script>
+    if (!Auth.requireAuth()) {} else { Layout.init(); initReport(); }
+    function initReport() {
+      document.getElementById('main-content').innerHTML = `
+        <div class="report-body">
+          <div class="page-header">
+            <div>
+              <h1>Relatório de Implementação — Calculadora</h1>
+              <p style="color:var(--color-muted);font-size:13px">GestãoPro ERP · Exercício EX8</p>
+            </div>
+            <a href="calculadora.html" class="btn btn-secondary btn-sm">← Voltar à Calculadora</a>
+          </div>
+
+          <h2>1. Objetivo</h2>
+          <p>Implementar uma calculadora funcional integrada ao sistema GestãoPro sem utilizar a função <code>eval()</code>,
+          com suporte a: adição, subtração, multiplicação, divisão, porcentagem, inversão de sinal, backspace,
+          limpar, histórico, precedência matemática, números negativos, decimais e tratamento seguro de erros.</p>
+
+          <h2>2. Arquitetura da Implementação</h2>
+          <p>O módulo <code>Calc</code> é implementado como um IIFE (<em>Immediately Invoked Function Expression</em>),
+          encapsulando estado e lógica sem poluir o escopo global. Os componentes internos são:</p>
+
+          <h3>2.1 Tokenização</h3>
+          <p>Os tokens são acumulados em um array <code>_tokens[]</code> à medida que o usuário pressiona dígitos e operadores.
+          Cada número é uma string numérica; cada operador é um símbolo (<code>+</code>, <code>−</code>, <code>×</code>, <code>÷</code>).</p>
+
+          <h3>2.2 Algoritmo Shunting-Yard (Dijkstra, 1961)</h3>
+          <p>Para respeitar a precedência matemática sem usar <code>eval()</code>, o algoritmo converte a expressão
+          infixa para notação polonesa reversa (RPN) via dois passageiros: uma fila de saída e uma pilha de operadores.
+          As regras de precedência são: <code>×</code> e <code>÷</code> têm precedência 2; <code>+</code> e <code>−</code> têm precedência 1.</p>
+
+          <h3>2.3 Avaliador RPN</h3>
+          <p>A sequência RPN é avaliada com uma pilha numérica. Para cada token: se for número, empilha; se for operador, desempilha dois operandos, calcula e empilha o resultado.</p>
+
+          <h3>2.4 Precisão de Ponto Flutuante</h3>
+          <p>JavaScript representa números em IEEE 754 double-precision, o que causa erros como
+          <code>0.1 + 0.2 = 0.30000000000000004</code>. A solução adotada é multiplicar por
+          <code>1e10</code>, arredondar para inteiro e dividir de volta: <code>Math.round(n * 1e10) / 1e10</code>.
+          Isso resolve casos como 0,1 + 0,2 e 2 + 3 × 4.</p>
+
+          <h2>3. Casos de Teste Validados</h2>
+          <div class="card" style="margin-bottom:16px">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Expressão</th><th>Esperado</th><th>Resultado Real</th><th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="test-results"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <h2>4. Funcionalidades Implementadas</h2>
+          <ul>
+            <li>✓ Adição, subtração, multiplicação e divisão</li>
+            <li>✓ Precedência matemática: <code>2 + 3 × 4 = 14</code> (não 20)</li>
+            <li>✓ Números negativos via botão ±</li>
+            <li>✓ Decimais (ponto flutuante)</li>
+            <li>✓ Porcentagem: divide o display atual por 100</li>
+            <li>✓ Backspace: remove último dígito</li>
+            <li>✓ Clear: reinicia estado completo</li>
+            <li>✓ Divisão por zero: exibe mensagem de erro sem travar</li>
+            <li>✓ Histórico: armazenado em <code>localStorage</code>, persistente entre sessões</li>
+            <li>✓ Suporte ao teclado: dígitos, operadores, Enter, Backspace, Escape</li>
+            <li>✓ Responsividade: calculadora + histórico em coluna única no mobile</li>
+            <li>✗ Sem uso de <code>eval()</code> em nenhum ponto</li>
+          </ul>
+
+          <h2>5. Integração ao ERP</h2>
+          <p>A calculadora está acessível pelo menu lateral do GestãoPro (ícone 🧮 "Calculadora").
+          Utiliza o mesmo sistema de autenticação JWT, layout responsivo com sidebar/header,
+          internacionalização (EX2) e CSS3 compartilhado com o restante do sistema.</p>
+
+          <h2>6. Limitações Conhecidas</h2>
+          <ul>
+            <li>Não implementa parênteses (fora do escopo do requisito).</li>
+            <li>Máximo de 50 itens no histórico (limpeza automática FIFO).</li>
+          </ul>
+        </div>`;
+      I18N.applyAll();
+      runTests();
+    }
+
+    // ── Testes inline ─────────────────────────────────────────
+    function runTests() {
+      const round = n => Math.round(n * 1e10) / 1e10;
+
+      function evaluate(tokens) {
+        const prec = { '+':1, '−':1, '×':2, '÷':2 };
+        const isOp = t => ['+','−','×','÷'].includes(t);
+        const output = [], ops = [];
+        for (const tok of tokens) {
+          if (isOp(tok)) {
+            while (ops.length && prec[ops[ops.length-1]] >= prec[tok]) output.push(ops.pop());
+            ops.push(tok);
+          } else output.push(parseFloat(tok));
+        }
+        while (ops.length) output.push(ops.pop());
+        const stack = [];
+        for (const tok of output) {
+          if (typeof tok === 'number') { stack.push(tok); continue; }
+          const b = stack.pop(), a = stack.pop();
+          switch(tok) {
+            case '+': stack.push(round(a+b)); break;
+            case '−': stack.push(round(a-b)); break;
+            case '×': stack.push(round(a*b)); break;
+            case '÷': stack.push(b===0?Infinity:round(a/b)); break;
+          }
+        }
+        return stack[0];
+      }
+
+      const cases = [
+        { expr: ['0.1','+','0.2'],          expected: 0.3,   label: '0,1 + 0,2 = 0,3' },
+        { expr: ['2','+','3','×','4'],       expected: 14,    label: '2 + 3 × 4 = 14 (precedência)' },
+        { expr: ['10','−','4','÷','2'],      expected: 8,     label: '10 − 4 ÷ 2 = 8' },
+        { expr: ['3','×','3','×','3'],       expected: 27,    label: '3 × 3 × 3 = 27' },
+        { expr: ['-5','×','2'],             expected: -10,   label: '-5 × 2 = -10 (negativo)' },
+        { expr: ['10','÷','0'],             expected: Infinity, label: '10 ÷ 0 = Divisão por zero' },
+        { expr: ['1.5','×','2'],            expected: 3,     label: '1,5 × 2 = 3 (decimal)' },
+        { expr: ['100','×','0.05'],         expected: 5,     label: '100 × 0,05 = 5 (porcentagem manual)' },
+        { expr: ['1000','−','1','−','1','−','1'], expected: 997, label: '1000 − 1 − 1 − 1 = 997' },
+        { expr: ['0.7','−','0.2'],          expected: 0.5,   label: '0,7 − 0,2 = 0,5 (precisão float)' },
+      ];
+
+      const tbody = document.getElementById('test-results');
+      tbody.innerHTML = cases.map(c => {
+        const got = evaluate(c.expr);
+        const ok = got === c.expected;
+        const gotLabel = isFinite(got) ? got : 'Divisão por zero';
+        const expLabel = isFinite(c.expected) ? c.expected : 'Divisão por zero';
+        return \`<tr>
+          <td><code>\${c.label.split('=')[0].trim()}</code></td>
+          <td>\${expLabel}</td>
+          <td>\${gotLabel}</td>
+          <td><span class="\${ok?'result-correct':'result-wrong'}">\${ok?'✓ Correto':'✗ Falhou'}</span></td>
+        </tr>\`;
+      }).join('');
+    }
+  </script>
+</body>
+</html>

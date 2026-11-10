@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GestãoPro — Vendas</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <div id="app-shell" data-page="vendas" data-title="Vendas"></div>
+  <script src="../js/i18n.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/layout.js"></script>
+  <script>
+    if (!Auth.requireAuth()) {} else { Layout.init(); init(); }
+    function init() {
+      const main = document.getElementById('main-content');
+      main.innerHTML = `
+        <div class="page-header">
+          <div>
+            <h1 data-i18n="sales.title">Vendas</h1>
+            <p style="color:var(--color-muted);font-size:13px" data-i18n="sales.subtitle">Registro e histórico de vendas</p>
+          </div>
+          <button class="btn btn-primary"><span>+</span><span data-i18n="sales.new">Nova Venda</span></button>
+        </div>
+        <div class="card">
+          <div class="filter-bar">
+            <div class="search-input-wrap">
+              <span class="search-icon">🔍</span>
+              <input class="form-control" type="search" placeholder="Buscar venda...">
+            </div>
+            <input type="date" class="form-control" style="max-width:160px">
+            <input type="date" class="form-control" style="max-width:160px">
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>#</th>
+                <th data-i18n="sales.customer">Cliente</th>
+                <th data-i18n="sales.date">Data</th>
+                <th data-i18n="sales.items">Itens</th>
+                <th data-i18n="sales.total">Total</th>
+                <th data-i18n="sales.payment">Pagamento</th>
+                <th data-i18n="sales.status">Status</th>
+                <th data-i18n="table.actions">Ações</th>
+              </tr></thead>
+              <tbody id="table-body"></tbody>
+            </table>
+          </div>
+          <div id="empty" class="empty-state">
+            <div class="empty-state-icon">🛒</div>
+            <p data-i18n="messages.no_results">Nenhum resultado encontrado.</p>
+          </div>
+          <div class="pagination" id="pagination"></div>
+        </div>`;
+      I18N.applyAll();
+      load();
+    }
+    async function load() {
+      try {
+        const data = await Auth.fetchWithAuth('/api/v1/sales?page=1&limit=10');
+        renderRows(data.items ?? []);
+      } catch (e) { document.getElementById('empty').style.display = 'block'; }
+    }
+    function renderRows(items) {
+      const body = document.getElementById('table-body');
+      const empty = document.getElementById('empty');
+      if (!items.length) { empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      body.innerHTML = items.map(s => `
+        <tr>
+          <td><code style="font-size:12px">#${s.id}</code></td>
+          <td>${esc(s.customer_name || s.customer_id || '—')}</td>
+          <td>${I18N.formatDate(s.sale_date || s.created_at)}</td>
+          <td>${s.item_count ?? '—'}</td>
+          <td><strong>${I18N.formatCurrency(s.total || 0)}</strong></td>
+          <td>${esc(s.payment_method || '—')}</td>
+          <td><span class="badge badge-info">${esc(s.status || 'pending')}</span></td>
+          <td><button class="btn btn-secondary btn-sm btn-icon" title="Ver">👁️</button></td>
+        </tr>`).join('');
+    }
+    function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  </script>
+</body>
+</html>

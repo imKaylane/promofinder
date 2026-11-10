@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GestãoPro — Pedidos</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <div id="app-shell" data-page="pedidos" data-title="Pedidos"></div>
+  <script src="../js/i18n.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/layout.js"></script>
+  <script>
+    if (!Auth.requireAuth()) {} else { Layout.init(); init(); }
+    function init() {
+      const main = document.getElementById('main-content');
+      main.innerHTML = `
+        <div class="page-header">
+          <div>
+            <h1 data-i18n="orders.title">Pedidos</h1>
+            <p style="color:var(--color-muted);font-size:13px" data-i18n="orders.subtitle">Gerenciamento de pedidos</p>
+          </div>
+          <button class="btn btn-primary"><span>+</span><span>Novo Pedido</span></button>
+        </div>
+        <div class="card">
+          <div class="filter-bar">
+            <div class="search-input-wrap">
+              <span class="search-icon">🔍</span>
+              <input class="form-control" type="search" placeholder="Buscar pedido...">
+            </div>
+            <select class="form-control" style="max-width:160px">
+              <option>Todos os status</option>
+              <option>Pendente</option><option>Em andamento</option>
+              <option>Concluído</option><option>Cancelado</option>
+            </select>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>#</th><th>Fornecedor</th><th>Data</th>
+                <th>Itens</th><th>Total</th><th>Status</th><th data-i18n="table.actions">Ações</th>
+              </tr></thead>
+              <tbody id="table-body"></tbody>
+            </table>
+          </div>
+          <div class="empty-state">
+            <div class="empty-state-icon">📋</div>
+            <p data-i18n="messages.no_results">Nenhum resultado encontrado.</p>
+          </div>
+        </div>`;
+      I18N.applyAll();
+      load();
+    }
+    async function load() {
+      try {
+        const data = await Auth.fetchWithAuth('/api/v1/orders?page=1&limit=10');
+        const body = document.getElementById('table-body');
+        body.innerHTML = (data.items ?? []).map(o => `
+          <tr>
+            <td><code style="font-size:12px">#${o.id}</code></td>
+            <td>${esc(o.supplier_name || '—')}</td>
+            <td>${I18N.formatDate(o.order_date || o.created_at)}</td>
+            <td>${o.item_count ?? '—'}</td>
+            <td>${I18N.formatCurrency(o.total || 0)}</td>
+            <td><span class="badge badge-warning">${esc(o.status || 'pending')}</span></td>
+            <td><button class="btn btn-secondary btn-sm btn-icon">👁️</button></td>
+          </tr>`).join('');
+      } catch (_) {}
+    }
+    function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  </script>
+</body>
+</html>

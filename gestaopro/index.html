@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GestãoPro — Login</title>
+  <link rel="stylesheet" href="frontend/css/main.css">
+  <style>
+    /* Estilos específicos da tela de login */
+    body { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+  </style>
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-card">
+      <div class="login-logo">
+        <div class="login-logo-icon">G</div>
+        <h1 data-i18n="app.name">GestãoPro</h1>
+        <p data-i18n="auth.sign_in_prompt">Acesse sua conta GestãoPro</p>
+      </div>
+
+      <form id="login-form" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="email" data-i18n="auth.email">E-mail</label>
+          <input
+            class="form-control"
+            type="email"
+            id="email"
+            name="email"
+            data-i18n-placeholder="auth.email_placeholder"
+            placeholder="seu@email.com"
+            required
+            autocomplete="email"
+            autofocus
+          >
+          <div class="form-error" id="email-error"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password" data-i18n="auth.password">Senha</label>
+          <input
+            class="form-control"
+            type="password"
+            id="password"
+            name="password"
+            data-i18n-placeholder="auth.password_placeholder"
+            placeholder="••••••••"
+            required
+            autocomplete="current-password"
+          >
+          <div class="form-error" id="password-error"></div>
+        </div>
+
+        <div class="form-error" id="login-error" style="margin-bottom:12px; font-size:13px;"></div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%; padding:10px;" id="login-btn">
+          <span data-i18n="auth.login">Entrar</span>
+        </button>
+      </form>
+
+      <div style="margin-top:16px; text-align:right;">
+        <button class="lang-selector" id="lang-toggle"></button>
+      </div>
+    </div>
+  </div>
+
+  <script src="frontend/js/i18n.js"></script>
+  <script src="frontend/js/ui.js"></script>
+  <script>
+    // Redirect if already logged in
+    if (localStorage.getItem('gestaopro_access')) {
+      window.location.href = 'frontend/pages/dashboard.html';
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('login-btn');
+      const errEl = document.getElementById('login-error');
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      errEl.textContent = '';
+      UI.btnLoading(btn, true);
+
+      try {
+        const body = new URLSearchParams({ username: email, password });
+        const res = await fetch('/api/v1/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body
+        });
+        if (!res.ok) throw new Error(res.status);
+        const data = await res.json();
+        localStorage.setItem('gestaopro_access', data.access_token);
+        localStorage.setItem('gestaopro_refresh', data.refresh_token);
+
+        // Buscar perfil
+        const meRes = await fetch('/api/v1/users/me', {
+          headers: { 'Authorization': `Bearer ${data.access_token}` }
+        });
+        if (meRes.ok) {
+          const user = await meRes.json();
+          sessionStorage.setItem('gestaopro_user', JSON.stringify(user));
+        }
+        window.location.href = 'frontend/pages/dashboard.html';
+      } catch (err) {
+        errEl.textContent = I18N.t('auth.invalid_credentials');
+      } finally {
+        UI.btnLoading(btn, false);
+      }
+    });
+
+    document.getElementById('lang-toggle').addEventListener('click', () => I18N.toggle());
+  </script>
+</body>
+</html>
