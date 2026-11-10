@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- GestãoPro — Strings (pt-BR padrão) (EX5) -->
+<resources>
+    <string name="app_name">GestãoPro</string>
+    <string name="app_subtitle">Sistema ERP</string>
+
+    <!-- Auth -->
+    <string name="auth_login">Entrar</string>
+    <string name="auth_logout">Sair</string>
+    <string name="auth_email">E-mail</string>
+    <string name="auth_password">Senha</string>
+    <string name="auth_email_hint">seu@email.com</string>
+    <string name="auth_password_hint">Sua senha</string>
+    <string name="auth_invalid_credentials">E-mail ou senha incorretos</string>
+    <string name="auth_required_fields">Preencha todos os campos</string>
+    <string name="auth_connecting">Conectando…</string>
+    <string name="auth_connection_error">Falha de conexão. Verifique a rede.</string>
+
+    <!-- Nav / Menu -->
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_products">Produtos</string>
+    <string name="nav_customers">Clientes</string>
+    <string name="nav_suppliers">Fornecedores</string>
+    <string name="nav_sales">Vendas</string>
+    <string name="nav_orders">Pedidos</string>
+    <string name="nav_stock">Estoque</string>
+    <string name="nav_financial">Financeiro</string>
+    <string name="nav_users">Usuários</string>
+    <string name="nav_audit">Auditoria</string>
+
+    <!-- Actions -->
+    <string name="action_save">Salvar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_delete">Excluir</string>
+    <string name="action_edit">Editar</string>
+    <string name="action_new">Novo</string>
+    <string name="action_search">Buscar</string>
+    <string name="action_retry">Tentar novamente</string>
+    <string name="action_confirm_delete">Deseja excluir este item?</string>
+
+    <!-- Products -->
+    <string name="products_title">Produtos</string>
+    <string name="product_name">Nome</string>
+    <string name="product_sku">SKU</string>
+    <string name="product_price">Preço</string>
+    <string name="product_stock">Estoque</string>
+    <string name="product_category">Categoria</string>
+    <string name="product_status">Status</string>
+    <string name="product_active">Ativo</string>
+    <string name="product_inactive">Inativo</string>
+    <string name="product_not_found">Produto não encontrado</string>
+
+    <!-- Customers -->
+    <string name="customers_title">Clientes</string>
+    <string name="customer_name">Nome</string>
+    <string name="customer_email">E-mail</string>
+    <string name="customer_phone">Telefone</string>
+    <string name="customer_document">CPF/CNPJ</string>
+    <string name="customer_city">Cidade</string>
+    <string name="customer_status">Status</string>
+
+    <!-- Suppliers -->
+    <string name="suppliers_title">Fornecedores</string>
+    <string name="supplier_company">Razão Social</string>
+    <string name="supplier_cnpj">CNPJ</string>
+    <string name="supplier_email">E-mail</string>
+    <string name="supplier_phone">Telefone</string>
+
+    <!-- States -->
+    <string name="state_loading">Carregando…</string>
+    <string name="state_empty">Nenhum registro encontrado.</string>
+    <string name="state_error">Ocorreu um erro. Tente novamente.</string>
+    <string name="state_saved">Salvo com sucesso!</string>
+    <string name="state_deleted">Excluído com sucesso!</string>
+
+    <!-- Pagination -->
+    <string name="pagination_of">de</string>
+    <string name="pagination_page">Página</string>
+</resources>

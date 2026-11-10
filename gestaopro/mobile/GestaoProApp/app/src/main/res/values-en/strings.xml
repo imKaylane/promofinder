@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- GestãoPro — Strings (English) (EX5) -->
+<resources>
+    <string name="app_name">GestãoPro</string>
+    <string name="app_subtitle">ERP System</string>
+
+    <!-- Auth -->
+    <string name="auth_login">Sign In</string>
+    <string name="auth_logout">Sign Out</string>
+    <string name="auth_email">Email</string>
+    <string name="auth_password">Password</string>
+    <string name="auth_email_hint">your@email.com</string>
+    <string name="auth_password_hint">Your password</string>
+    <string name="auth_invalid_credentials">Incorrect email or password</string>
+    <string name="auth_required_fields">Please fill in all fields</string>
+    <string name="auth_connecting">Connecting…</string>
+    <string name="auth_connection_error">Connection failed. Check your network.</string>
+
+    <!-- Nav / Menu -->
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_products">Products</string>
+    <string name="nav_customers">Customers</string>
+    <string name="nav_suppliers">Suppliers</string>
+    <string name="nav_sales">Sales</string>
+    <string name="nav_orders">Orders</string>
+    <string name="nav_stock">Stock</string>
+    <string name="nav_financial">Financial</string>
+    <string name="nav_users">Users</string>
+    <string name="nav_audit">Audit</string>
+
+    <!-- Actions -->
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_new">New</string>
+    <string name="action_search">Search</string>
+    <string name="action_retry">Try again</string>
+    <string name="action_confirm_delete">Do you want to delete this item?</string>
+
+    <!-- Products -->
+    <string name="products_title">Products</string>
+    <string name="product_name">Name</string>
+    <string name="product_sku">SKU</string>
+    <string name="product_price">Price</string>
+    <string name="product_stock">Stock</string>
+    <string name="product_category">Category</string>
+    <string name="product_status">Status</string>
+    <string name="product_active">Active</string>
+    <string name="product_inactive">Inactive</string>
+    <string name="product_not_found">Product not found</string>
+
+    <!-- Customers -->
+    <string name="customers_title">Customers</string>
+    <string name="customer_name">Name</string>
+    <string name="customer_email">Email</string>
+    <string name="customer_phone">Phone</string>
+    <string name="customer_document">CPF/CNPJ</string>
+    <string name="customer_city">City</string>
+    <string name="customer_status">Status</string>
+
+    <!-- Suppliers -->
+    <string name="suppliers_title">Suppliers</string>
+    <string name="supplier_company">Company Name</string>
+    <string name="supplier_cnpj">CNPJ</string>
+    <string name="supplier_email">Email</string>
+    <string name="supplier_phone">Phone</string>
+
+    <!-- States -->
+    <string name="state_loading">Loading…</string>
+    <string name="state_empty">No records found.</string>
+    <string name="state_error">An error occurred. Please try again.</string>
+    <string name="state_saved">Saved successfully!</string>
+    <string name="state_deleted">Deleted successfully!</string>
+
+    <!-- Pagination -->
+    <string name="pagination_of">of</string>
+    <string name="pagination_page">Page</string>
+</resources>
