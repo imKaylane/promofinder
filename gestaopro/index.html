@@ -66,6 +66,8 @@
 
   <script src="frontend/js/i18n.js"></script>
   <script src="frontend/js/ui.js"></script>
+  <script src="frontend/js/config.js"></script>
+  <script src="frontend/js/auth.js"></script>
   <script>
     // Redirect if already logged in
     if (localStorage.getItem('gestaopro_access')) {
@@ -83,25 +85,8 @@
       UI.btnLoading(btn, true);
 
       try {
-        const body = new URLSearchParams({ username: email, password });
-        const res = await fetch('/api/v1/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body
-        });
-        if (!res.ok) throw new Error(res.status);
-        const data = await res.json();
-        localStorage.setItem('gestaopro_access', data.access_token);
-        localStorage.setItem('gestaopro_refresh', data.refresh_token);
-
-        // Buscar perfil
-        const meRes = await fetch('/api/v1/users/me', {
-          headers: { 'Authorization': `Bearer ${data.access_token}` }
-        });
-        if (meRes.ok) {
-          const user = await meRes.json();
-          sessionStorage.setItem('gestaopro_user', JSON.stringify(user));
-        }
+        const user = await Auth.login(email, password);
+        sessionStorage.setItem('gestaopro_user', JSON.stringify(user));
         window.location.href = 'frontend/pages/dashboard.html';
       } catch (err) {
         errEl.textContent = I18N.t('auth.invalid_credentials');

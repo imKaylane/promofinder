@@ -1,15 +1,16 @@
 // =========================================================
-// GestãoPro — Módulo de Autenticação
+// GestãoPro — Módulo de Autenticação (EX6)
 // Portado de: backend/app/core/security.py (lógica JWT)
 //             frontend/src/hooks/useAuth.tsx (fluxo)
 //             frontend/src/services/api.ts (interceptors)
+// Depende de: config.js (carregado antes)
 // =========================================================
 
 const Auth = (() => {
-  const API = window.GestaoAPI;
   const STORAGE_USER = 'gestaopro_user';
 
-  function getAccessToken() { return localStorage.getItem('gestaopro_access'); }
+  // ── Storage helpers ────────────────────────────────────
+  function getAccessToken()  { return localStorage.getItem('gestaopro_access'); }
   function getRefreshToken() { return localStorage.getItem('gestaopro_refresh'); }
   function isAuthenticated() { return !!getAccessToken(); }
   function getUser() {
@@ -17,35 +18,45 @@ const Auth = (() => {
     return s ? JSON.parse(s) : null;
   }
 
+  // ── Login ──────────────────────────────────────────────
   async function login(email, password) {
-    const body = new URLSearchParams({ username: email, password });
-    const res = await fetch('/api/v1/auth/login', {
+    const cfg = window.GestaoConfig;
+    const url = cfg ? cfg.ENDPOINTS.LOGIN : '/api/v1/auth/login';
+
+    const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
     });
-    if (!res.ok) throw new Error(res.status);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw Object.assign(new Error(err.detail || 'login_failed'), { status: res.status, data: err });
+    }
     const data = await res.json();
     localStorage.setItem('gestaopro_access', data.access_token);
     localStorage.setItem('gestaopro_refresh', data.refresh_token);
-    // fetch user profile
-    const me = await fetchWithAuth('/api/v1/users/me');
+
+    // Busca o perfil do usuário após login
+    const meUrl = cfg ? cfg.ENDPOINTS.ME : '/api/v1/auth/me';
+    const me = await fetchWithAuth(meUrl);
     sessionStorage.setItem(STORAGE_USER, JSON.stringify(me));
     return me;
   }
 
+  // ── Logout ─────────────────────────────────────────────
   async function logout() {
     const rt = getRefreshToken();
     if (rt) {
       try {
-        await fetchWithAuth('/api/v1/auth/logout', {
+        const cfg = window.GestaoConfig;
+        await fetchWithAuth(cfg ? cfg.ENDPOINTS.LOGOUT : '/api/v1/auth/logout', {
           method: 'POST',
-          body: JSON.stringify({ refresh_token: rt })
+          body: JSON.stringify({ refresh_token: rt }),
         });
       } catch (_) {}
     }
     _clearStorage();
-    window.location.href = '../index.html';
+    window.location.href = '/';
   }
 
   function _clearStorage() {
@@ -54,13 +65,16 @@ const Auth = (() => {
     sessionStorage.removeItem(STORAGE_USER);
   }
 
+  // ── Token refresh silencioso ───────────────────────────
   async function _refresh() {
     const rt = getRefreshToken();
     if (!rt) throw new Error('no_refresh');
-    const res = await fetch('/api/v1/auth/refresh', {
+    const cfg = window.GestaoConfig;
+    const url = cfg ? cfg.ENDPOINTS.REFRESH : '/api/v1/auth/refresh';
+    const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh_token: rt })
+      body: JSON.stringify({ refresh_token: rt }),
     });
     if (!res.ok) throw new Error('refresh_failed');
     const data = await res.json();
@@ -69,13 +83,15 @@ const Auth = (() => {
     return data.access_token;
   }
 
-  // ── Fetch with auth + automatic token refresh ──────────────────────────
+  // ── fetchWithAuth — Fetch autenticado + refresh automático ──
   async function fetchWithAuth(url, opts = {}) {
     const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
     const token = getAccessToken();
     if (token) headers['Authorization'] = `Bearer ${token}`;
+
     let res = await fetch(url, { ...opts, headers });
 
+    // Tenta renovar token em caso de 401
     if (res.status === 401) {
       try {
         const newToken = await _refresh();
@@ -83,10 +99,11 @@ const Auth = (() => {
         res = await fetch(url, { ...opts, headers });
       } catch (_) {
         _clearStorage();
-        window.location.href = '../index.html';
+        window.location.href = '/';
         throw new Error('session_expired');
       }
     }
+
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: res.statusText }));
       throw Object.assign(new Error(err.detail || 'request_error'), { status: res.status, data: err });
@@ -95,13 +112,18 @@ const Auth = (() => {
     return res.json();
   }
 
+  // ── requireAuth — redireciona se não autenticado ───────
   function requireAuth() {
     if (!isAuthenticated()) {
-      window.location.href = '../index.html';
+      window.location.href = '/';
       return false;
     }
     return true;
   }
 
-  return { login, logout, fetchWithAuth, getUser, isAuthenticated, requireAuth, getAccessToken };
+  return {
+    login, logout, fetchWithAuth,
+    getUser, getAccessToken, getRefreshToken,
+    isAuthenticated, requireAuth,
+  };
 })();

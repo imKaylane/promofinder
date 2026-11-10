@@ -97,8 +97,10 @@
   <div id="app-shell" data-page="calculadora" data-title="Calculadora"></div>
   <script src="../js/i18n.js"></script>
   <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/layout.js"></script>
+  <script src="../js/calc-engine.js"></script>
   <script>
     if (!Auth.requireAuth()) {} else { Layout.init(); initCalc(); }
 
@@ -168,28 +170,24 @@
     }
 
     // ══════════════════════════════════════════════════════════
-    // CALCULADORA — Implementação sem eval()
-    // Suporta: + − × ÷ % ± backspace clear
-    // Precedência: × e ÷ antes de + e −  (shunting-yard)
-    // Precisão: arredondamento para 10 casas decimais
+    // CALCULADORA — usa calc-engine.js (motor sem eval)
     // ══════════════════════════════════════════════════════════
-    const Calc = (() => {
-      let _display = '0';
-      let _expression = '';
-      let _tokens = [];   // [number | operator] string[]
-      let _justCalc = false;
-      let _history = JSON.parse(localStorage.getItem('gestaopro_calc_history') || '[]');
+    const _calcInst = CalcEngine.createCalc();
+    let _calcHistory = JSON.parse(localStorage.getItem('gestaopro_calc_history') || '[]');
 
-      function init() {
+    const Calc = {
+      init() {
         document.getElementById('calc-grid').addEventListener('click', e => {
           const btn = e.target.closest('[data-digit],[data-op],[data-action]');
           if (!btn) return;
-          if (btn.dataset.digit !== undefined) _inputDigit(btn.dataset.digit);
-          else if (btn.dataset.op)    _inputOp(btn.dataset.op);
-          else if (btn.dataset.action) _inputAction(btn.dataset.action);
+          let res;
+          if (btn.dataset.digit !== undefined) { _calcInst.inputDigit(btn.dataset.digit); res = null; }
+          else if (btn.dataset.op)    { _calcInst.inputOp(btn.dataset.op); res = null; }
+          else if (btn.dataset.action) { res = _calcInst.inputAction(btn.dataset.action); }
+          _render(res);
         });
 
-        // Keyboard support (EX8 requirement)
+        // Suporte ao teclado (requisito EX8)
         document.addEventListener('keydown', e => {
           if (!document.getElementById('calc-grid')) return;
           const map = {
@@ -201,212 +199,76 @@
           const mapped = map[e.key];
           if (!mapped) return;
           e.preventDefault();
-          if (['equals','backspace','clear','pct'].includes(mapped)) _inputAction(mapped);
-          else if (['+','−','×','÷'].includes(mapped)) _inputOp(mapped);
-          else _inputDigit(mapped);
+          let res = null;
+          if (['equals','backspace','clear','pct','sign'].includes(mapped)) {
+            res = _calcInst.inputAction(mapped);
+          } else if (['+','−','×','÷'].includes(mapped)) {
+            _calcInst.inputOp(mapped);
+          } else {
+            _calcInst.inputDigit(mapped);
+          }
+          _render(res);
         });
 
         _renderHistory();
+      },
+
+      recallResult(val) {
+        _calcInst.inputDigit(String(val));
+        _render(null);
+      },
+    };
+
+    function _render(res) {
+      const st = _calcInst.getState();
+      const displayEl = document.getElementById('calc-current');
+      const exprEl    = document.getElementById('calc-expr');
+
+      displayEl.classList.remove('error');
+
+      if (res && res.status === 'error') {
+        displayEl.textContent = res.display;
+        displayEl.classList.add('error');
+        if (exprEl) exprEl.textContent = st.expression;
+        return;
       }
 
-      function _inputDigit(d) {
-        if (_justCalc && d !== '.') { _display = ''; _expression = ''; _tokens = []; }
-        _justCalc = false;
-        if (d === '.') {
-          if (_display.includes('.')) return;
-          if (_display === '' || _display === '-') _display += '0';
+      if (res && res.status === 'ok' && res.expression) {
+        // After equals: update history list
+        const h = _calcInst.getHistory();
+        if (h.length > 0) {
+          _calcHistory = h.map(item => ({ expr: item.expression, result: item.result }));
+          localStorage.setItem('gestaopro_calc_history', JSON.stringify(_calcHistory));
+          _renderHistory();
         }
-        if (_display === '0' && d !== '.') _display = d;
-        else _display += d;
-        _update();
       }
 
-      function _inputOp(op) {
-        _justCalc = false;
-        if (_display === '' && _tokens.length === 0) return;
-        if (_display !== '') {
-          _tokens.push(_display);
-          _display = '';
-        }
-        // Replace last operator if two ops in a row
-        if (_tokens.length > 0 && _isOp(_tokens[_tokens.length - 1])) {
-          _tokens[_tokens.length - 1] = op;
-        } else {
-          _tokens.push(op);
-        }
-        _expression = _tokens.join(' ') + ' ';
-        _update();
+      displayEl.textContent = st.display || '0';
+      if (exprEl) exprEl.textContent = st.expression || '';
+    }
+
+    function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    function _renderHistory() {
+      const el = document.getElementById('history-list');
+      if (!el) return;
+      const h = _calcInst.getHistory();
+      if (!h.length) {
+        el.innerHTML = `<div class="empty-state" style="padding:32px 16px"><div class="empty-state-icon">🧮</div><p>Nenhum cálculo realizado.</p></div>`;
+        return;
       }
+      el.innerHTML = h.map(item => `
+        <div class="history-item" onclick="Calc.recallResult('${item.result.replace(/'/g,'')}')">
+          <span class="history-expr">${esc(item.expression)}</span>
+          <span class="history-result">${esc(item.result)}</span>
+        </div>`).join('');
+    }
 
-      function _inputAction(action) {
-        switch (action) {
-          case 'clear':
-            _display = '0'; _expression = ''; _tokens = []; _justCalc = false;
-            document.getElementById('calc-current').classList.remove('error');
-            break;
-          case 'backspace':
-            if (_justCalc) { _display = '0'; _justCalc = false; break; }
-            _display = _display.length > 1 ? _display.slice(0, -1) : '0';
-            break;
-          case 'sign':
-            if (_display === '0' || _display === '') return;
-            _display = _display.startsWith('-') ? _display.slice(1) : '-' + _display;
-            break;
-          case 'pct':
-            // Apply % to current display: divide by 100
-            if (_display !== '') {
-              const v = _parseNum(_display);
-              _display = _formatNum(v / 100);
-            }
-            break;
-          case 'equals':
-            _calculate();
-            return;
-        }
-        _update();
-      }
-
-      function _calculate() {
-        if (_display !== '') _tokens.push(_display);
-        if (_tokens.length === 0) return;
-
-        const expr = _tokens.join(' ');
-        let result;
-        try {
-          result = _evaluate(_tokens.slice());
-          if (!isFinite(result)) throw new Error('div_zero');
-        } catch (e) {
-          const msg = e.message === 'div_zero' ? 'Erro: divisão por zero' : 'Erro de cálculo';
-          document.getElementById('calc-current').textContent = msg;
-          document.getElementById('calc-current').classList.add('error');
-          document.getElementById('calc-expr').textContent = expr + ' =';
-          _tokens = []; _display = '0'; _justCalc = true;
-          return;
-        }
-
-        document.getElementById('calc-current').classList.remove('error');
-        const resultStr = _formatNum(result);
-        _addHistory(expr + ' =', resultStr);
-        document.getElementById('calc-expr').textContent = expr + ' =';
-        _display = resultStr;
-        _tokens = [];
-        _expression = '';
-        _justCalc = true;
-        document.getElementById('calc-current').textContent = resultStr;
-      }
-
-      // ── Shunting-Yard + RPN evaluator (no eval) ──────────────
-      function _evaluate(tokens) {
-        const precedence = { '+': 1, '−': 1, '×': 2, '÷': 2 };
-        const output = [];
-        const ops = [];
-
-        for (const tok of tokens) {
-          if (_isOp(tok)) {
-            while (ops.length > 0 && precedence[ops[ops.length-1]] >= precedence[tok]) {
-              output.push(ops.pop());
-            }
-            ops.push(tok);
-          } else {
-            output.push(_parseNum(tok));
-          }
-        }
-        while (ops.length > 0) output.push(ops.pop());
-
-        // Evaluate RPN
-        const stack = [];
-        for (const tok of output) {
-          if (typeof tok === 'number') {
-            stack.push(tok);
-          } else {
-            const b = stack.pop(), a = stack.pop();
-            if (a === undefined || b === undefined) throw new Error('invalid');
-            switch (tok) {
-              case '+': stack.push(_round(a + b)); break;
-              case '−': stack.push(_round(a - b)); break;
-              case '×': stack.push(_round(a * b)); break;
-              case '÷':
-                if (b === 0) throw new Error('div_zero');
-                stack.push(_round(a / b));
-                break;
-            }
-          }
-        }
-        if (stack.length !== 1) throw new Error('invalid');
-        return stack[0];
-      }
-
-      // ── Floating-point precision fix ─────────────────────────
-      // 0.1 + 0.2 → 0.3 (not 0.30000000000000004)
-      function _round(n) {
-        return Math.round(n * 1e10) / 1e10;
-      }
-
-      function _parseNum(s) {
-        const n = parseFloat(s);
-        if (isNaN(n)) throw new Error('invalid');
-        return n;
-      }
-
-      function _formatNum(n) {
-        // Remove trailing zeros after decimal point
-        const s = n.toString();
-        if (s.includes('.')) return s.replace(/\.?0+$/, '') || '0';
-        return s;
-      }
-
-      function _isOp(t) { return ['+','−','×','÷'].includes(t); }
-
-      function _update() {
-        const displayEl = document.getElementById('calc-current');
-        const exprEl = document.getElementById('calc-expr');
-        if (displayEl) displayEl.textContent = _display || '0';
-        if (exprEl) exprEl.textContent = _expression;
-      }
-
-      function _addHistory(expr, result) {
-        _history.unshift({ expr, result, ts: new Date().toISOString() });
-        if (_history.length > 50) _history.pop();
-        localStorage.setItem('gestaopro_calc_history', JSON.stringify(_history));
-        _renderHistory();
-      }
-
-      function _renderHistory() {
-        const el = document.getElementById('history-list');
-        if (!el) return;
-        if (!_history.length) {
-          el.innerHTML = `<div class="empty-state" style="padding:32px 16px"><div class="empty-state-icon">🧮</div><p>Nenhum cálculo realizado.</p></div>`;
-          return;
-        }
-        el.innerHTML = _history.map((h, i) => `
-          <div class="history-item" onclick="Calc.recallResult('${h.result.replace(/'/g,'')}')">
-            <span class="history-expr">${esc(h.expr)}</span>
-            <span class="history-result">${esc(h.result)}</span>
-          </div>`).join('');
-      }
-
-      function recallResult(val) {
-        _display = val; _justCalc = false; _update();
-      }
-
-      function clearHistory() {
-        _history = [];
-        localStorage.removeItem('gestaopro_calc_history');
-        _renderHistory();
-      }
-
-      function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-      return { init, recallResult };
-    })();
-
-    function clearHistory() { Calc.clearHistory && Calc.clearHistory(); }
-    // Make clearHistory accessible globally via button
-    Object.defineProperty(Calc, 'clearHistory', { value: function() {
+    function clearHistory() {
+      _calcInst.clearHistory();
       localStorage.removeItem('gestaopro_calc_history');
-      document.getElementById('history-list').innerHTML =
-        `<div class="empty-state" style="padding:32px 16px"><div class="empty-state-icon">🧮</div><p>Nenhum cálculo realizado.</p></div>`;
-    }, writable: true });
+      _renderHistory();
+    }
   </script>
 </body>
 </html>

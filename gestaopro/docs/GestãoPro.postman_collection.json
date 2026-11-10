@@ -1,0 +1,319 @@
+{
+  "info": {
+    "name": "GestãoPro API",
+    "_postman_id": "gestaopro-api-v1",
+    "description": "Coleção completa da API REST GestãoPro (EX4).\nBase URL: http://localhost:5000/api/v1\nAutenticação: Bearer JWT — obter via POST /auth/login",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5000/api/v1", "type": "string" },
+    { "key": "access_token", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth","register"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"João Silva\",\n  \"email\": \"joao@gestaopro.local\",\n  \"password\": \"Senha@2025\"\n}" }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [{ "listen": "test", "script": { "exec": ["const j = pm.response.json();", "if (j.access_token) pm.collectionVariables.set('access_token', j.access_token);"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth","login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@gestaopro.local\",\n  \"password\": \"Admin@123\"\n}" }
+          }
+        },
+        {
+          "name": "Me (perfil atual)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": { "raw": "{{base_url}}/auth/me", "host": ["{{base_url}}"], "path": ["auth","me"] }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/auth/refresh", "host": ["{{base_url}}"], "path": ["auth","refresh"] },
+            "body": { "mode": "raw", "raw": "{\n  \"refresh_token\": \"<REFRESH_TOKEN>\"\n}" }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/auth/logout", "host": ["{{base_url}}"], "path": ["auth","logout"] },
+            "body": { "mode": "raw", "raw": "{\n  \"refresh_token\": \"<REFRESH_TOKEN>\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Produtos",
+      "item": [
+        {
+          "name": "Listar produtos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/products?page=1&limit=20&search=&status=active",
+              "host": ["{{base_url}}"], "path": ["products"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "search", "value": "", "disabled": true },
+                { "key": "status", "value": "active", "disabled": true },
+                { "key": "category_id", "value": "1", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar produto por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": { "raw": "{{base_url}}/products/1", "host": ["{{base_url}}"], "path": ["products","1"] }
+          }
+        },
+        {
+          "name": "Criar produto",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/products", "host": ["{{base_url}}"], "path": ["products"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Notebook ProBook\",\n  \"sku\": \"NB-999\",\n  \"price\": 3499.90,\n  \"cost\": 2800.00,\n  \"stock_qty\": 10,\n  \"unit\": \"un\",\n  \"category_id\": 2,\n  \"description\": \"Notebook corporativo\",\n  \"release_date\": \"2024-01-15\",\n  \"status\": \"active\"\n}" }
+          }
+        },
+        {
+          "name": "Atualizar produto (PUT)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/products/1", "host": ["{{base_url}}"], "path": ["products","1"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Notebook ProBook Atualizado\",\n  \"price\": 3299.90\n}" }
+          }
+        },
+        {
+          "name": "Excluir produto",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": { "raw": "{{base_url}}/products/1", "host": ["{{base_url}}"], "path": ["products","1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Clientes",
+      "item": [
+        {
+          "name": "Listar clientes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/customers?page=1&limit=20",
+              "host": ["{{base_url}}"], "path": ["customers"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "search", "value": "", "disabled": true },
+                { "key": "status", "value": "active", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar cliente por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": { "raw": "{{base_url}}/customers/1", "host": ["{{base_url}}"], "path": ["customers","1"] }
+          }
+        },
+        {
+          "name": "Criar cliente (PF)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/customers", "host": ["{{base_url}}"], "path": ["customers"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Maria Fernanda Costa\",\n  \"person_type\": \"PF\",\n  \"email\": \"maria.costa@email.com\",\n  \"phone\": \"(11) 99123-4567\",\n  \"document\": \"529.982.247-25\",\n  \"birth_date\": \"1990-05-20\",\n  \"credit_limit\": 5000.00,\n  \"address\": \"Rua das Flores, 123\",\n  \"city\": \"São Paulo\",\n  \"state\": \"SP\",\n  \"zip_code\": \"01310-100\",\n  \"status\": \"active\"\n}" }
+          }
+        },
+        {
+          "name": "Criar cliente (PJ)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/customers", "host": ["{{base_url}}"], "path": ["customers"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Empresa ABC Ltda\",\n  \"person_type\": \"PJ\",\n  \"email\": \"contato@abc.com\",\n  \"phone\": \"(11) 3344-5566\",\n  \"document\": \"12.345.678/0001-95\",\n  \"credit_limit\": 30000.00,\n  \"city\": \"São Paulo\",\n  \"state\": \"SP\",\n  \"zip_code\": \"04578-000\",\n  \"status\": \"active\"\n}" }
+          }
+        },
+        {
+          "name": "Atualizar cliente (PUT)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/customers/1", "host": ["{{base_url}}"], "path": ["customers","1"] },
+            "body": { "mode": "raw", "raw": "{\n  \"credit_limit\": 8000.00,\n  \"status\": \"active\"\n}" }
+          }
+        },
+        {
+          "name": "Excluir cliente",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": { "raw": "{{base_url}}/customers/1", "host": ["{{base_url}}"], "path": ["customers","1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Fornecedores",
+      "item": [
+        {
+          "name": "Listar fornecedores",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/suppliers?page=1&limit=20",
+              "host": ["{{base_url}}"], "path": ["suppliers"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "search", "value": "", "disabled": true },
+                { "key": "status", "value": "active", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar fornecedor por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": { "raw": "{{base_url}}/suppliers/1", "host": ["{{base_url}}"], "path": ["suppliers","1"] }
+          }
+        },
+        {
+          "name": "Criar fornecedor",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/suppliers", "host": ["{{base_url}}"], "path": ["suppliers"] },
+            "body": { "mode": "raw", "raw": "{\n  \"company_name\": \"TechImport Ltda\",\n  \"trade_name\": \"TechImport\",\n  \"cnpj\": \"11.222.333/0001-81\",\n  \"email\": \"compras@techimport.com\",\n  \"phone\": \"(11) 3456-7890\",\n  \"contact\": \"Roberto Lima\",\n  \"address\": \"Av. Paulista, 1000\",\n  \"city\": \"São Paulo\",\n  \"state\": \"SP\",\n  \"zip_code\": \"01310-100\",\n  \"category\": \"Informática\",\n  \"contract_date\": \"2024-01-15\",\n  \"status\": \"active\"\n}" }
+          }
+        },
+        {
+          "name": "Atualizar fornecedor (PUT)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/suppliers/1", "host": ["{{base_url}}"], "path": ["suppliers","1"] },
+            "body": { "mode": "raw", "raw": "{\n  \"company_name\": \"TechImport Ltda\",\n  \"email\": \"novo@techimport.com\",\n  \"status\": \"active\"\n}" }
+          }
+        },
+        {
+          "name": "Atualizar parcial (PATCH)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/suppliers/1", "host": ["{{base_url}}"], "path": ["suppliers","1"] },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"inactive\"\n}" }
+          }
+        },
+        {
+          "name": "Excluir fornecedor",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": { "raw": "{{base_url}}/suppliers/1", "host": ["{{base_url}}"], "path": ["suppliers","1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Usuários (admin)",
+      "item": [
+        {
+          "name": "Listar usuários",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/admin/users?page=1&limit=20",
+              "host": ["{{base_url}}"], "path": ["admin","users"],
+              "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "20" }]
+            }
+          }
+        },
+        {
+          "name": "Auditoria",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/audit?page=1&limit=50",
+              "host": ["{{base_url}}"], "path": ["audit"],
+              "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "50" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:5000/health", "host": ["http://localhost:5000"], "path": ["health"] }
+          }
+        }
+      ]
+    }
+  ]
+}
