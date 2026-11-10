@@ -2,9 +2,12 @@
 GestãoPro — Blueprint de autenticação
 Portado de: backend/app/api/v1/auth.py (TechDeals AI)
 """
+import logging
 from datetime import datetime, timedelta, timezone
 
 from flask import Blueprint, request, jsonify
+
+logger = logging.getLogger(__name__)
 
 import app.models.database as _db
 def get_db(): return _db.get_db()
@@ -43,9 +46,10 @@ def register():
         user = repo.create(name=name, email=email, password_hash=hashed)
         db.commit()
         return jsonify(_user_out(user)), 201
-    except Exception as e:
+    except Exception:
         db.rollback()
-        return jsonify({"detail": str(e)}), 500
+        logger.exception("Error registering user")
+        return jsonify({"detail": "Internal server error"}), 500
     finally:
         db.close()
 
@@ -84,9 +88,10 @@ def login():
         db.commit()
 
         return jsonify({"access_token": access, "refresh_token": refresh, "token_type": "bearer"})
-    except Exception as e:
+    except Exception:
         db.rollback()
-        return jsonify({"detail": str(e)}), 500
+        logger.exception("Error during login for %s", email)
+        return jsonify({"detail": "Internal server error"}), 500
     finally:
         db.close()
 
@@ -121,9 +126,10 @@ def refresh():
         db.commit()
 
         return jsonify({"access_token": new_access, "refresh_token": new_refresh, "token_type": "bearer"})
-    except Exception as e:
+    except Exception:
         db.rollback()
-        return jsonify({"detail": str(e)}), 500
+        logger.exception("Error refreshing token")
+        return jsonify({"detail": "Internal server error"}), 500
     finally:
         db.close()
 

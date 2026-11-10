@@ -55,9 +55,12 @@ class Customer(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255), nullable=False, index=True)
+    person_type = Column(String(2), nullable=False, default="PF")   # PF | PJ
     email = Column(String(255), nullable=True)
     phone = Column(String(50), nullable=True)
     document = Column(String(50), nullable=True)   # CPF / CNPJ
+    birth_date = Column(DateTime(timezone=True), nullable=True)
+    credit_limit = Column(Numeric(12, 2), nullable=True, default=0)
     address = Column(String(512), nullable=True)
     city = Column(String(100), nullable=True)
     state = Column(String(2), nullable=True)
@@ -82,7 +85,11 @@ class Supplier(Base):
     phone = Column(String(50), nullable=True)
     contact = Column(String(255), nullable=True)
     address = Column(String(512), nullable=True)
+    city = Column(String(100), nullable=True)
+    state = Column(String(2), nullable=True)
+    zip_code = Column(String(20), nullable=True)
     category = Column(String(100), nullable=True)
+    contract_date = Column(DateTime(timezone=True), nullable=True)
     status = Column(String(20), nullable=False, default="active")
     created_at = Column(DateTime(timezone=True), nullable=False, default=now_utc)
     updated_at = Column(DateTime(timezone=True), nullable=False, default=now_utc, onupdate=now_utc)
@@ -117,6 +124,7 @@ class Product(Base):
     stock_qty = Column(Integer, nullable=False, default=0)
     unit = Column(String(20), nullable=False, default="un")
     description = Column(Text, nullable=True)
+    release_date = Column(DateTime(timezone=True), nullable=True)
     status = Column(String(20), nullable=False, default="active")
     created_at = Column(DateTime(timezone=True), nullable=False, default=now_utc)
     updated_at = Column(DateTime(timezone=True), nullable=False, default=now_utc, onupdate=now_utc)

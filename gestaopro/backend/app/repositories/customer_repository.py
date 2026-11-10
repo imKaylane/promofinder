@@ -39,7 +39,7 @@ class CustomerRepository:
         return items, total, pages
 
     def create(self, data: dict) -> Customer:
-        c = Customer(**data)
+        c = Customer(**{k: v for k, v in data.items() if hasattr(Customer, k)})
         self.db.add(c)
         self.db.flush()
         return c

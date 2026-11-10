@@ -13,6 +13,7 @@ from app.models.database import init_db, check_connection
 from app.api.auth import auth_bp
 from app.api.products import products_bp
 from app.api.customers import customers_bp
+from app.api.suppliers import suppliers_bp
 from app.api.users import users_bp
 
 # Pasta raiz do projeto GestãoPro (um nível acima de backend/)
@@ -33,6 +34,7 @@ def create_app() -> Flask:
     app.register_blueprint(auth_bp)
     app.register_blueprint(products_bp)
     app.register_blueprint(customers_bp)
+    app.register_blueprint(suppliers_bp)
     app.register_blueprint(users_bp)
 
     # ── Health check ────────────────────────────────────────────────────────

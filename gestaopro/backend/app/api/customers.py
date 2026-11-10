@@ -2,13 +2,21 @@
 GestãoPro — Blueprint de Clientes (EX3 + EX4)
 CRUD completo — segunda entidade do exercício
 """
+import logging
 from flask import Blueprint, request, jsonify, g
+
+logger = logging.getLogger(__name__)
 
 import app.models.database as _db
 def get_db(): return _db.get_db()
 from app.repositories.customer_repository import CustomerRepository
 from app.middleware.auth import require_auth
 from app.models.models import AuditLog
+from app.services.validators import (
+    validate_email, validate_phone_br, validate_cep, validate_uf,
+    validate_document, validate_date_iso, validate_positive_decimal,
+    build_error,
+)
 
 customers_bp = Blueprint("customers", __name__, url_prefix="/api/v1/customers")
 
@@ -63,9 +71,10 @@ def create_customer():
         _audit(db, g.user_id, "CREATE", "customers", c.id, f"Customer '{c.name}' created")
         db.commit()
         return jsonify(_out(c)), 201
-    except Exception as e:
+    except Exception:
         db.rollback()
-        return jsonify({"detail": str(e)}), 500
+        logger.exception("Error creating customer")
+        return jsonify({"detail": "Internal server error"}), 500
     finally:
         db.close()
 
@@ -89,9 +98,10 @@ def update_customer(customer_id: int):
         _audit(db, g.user_id, "UPDATE", "customers", customer_id, f"Customer '{updated.name}' updated")
         db.commit()
         return jsonify(_out(updated))
-    except Exception as e:
+    except Exception:
         db.rollback()
-        return jsonify({"detail": str(e)}), 500
+        logger.exception("Error updating customer %d", customer_id)
+        return jsonify({"detail": "Internal server error"}), 500
     finally:
         db.close()
 
@@ -111,9 +121,10 @@ def delete_customer(customer_id: int):
         _audit(db, g.user_id, "DELETE", "customers", customer_id, f"Customer '{name}' deleted")
         db.commit()
         return "", 204
-    except Exception as e:
+    except Exception:
         db.rollback()
-        return jsonify({"detail": str(e)}), 500
+        logger.exception("Error deleting customer %d", customer_id)
+        return jsonify({"detail": "Internal server error"}), 500
     finally:
         db.close()
 
@@ -122,20 +133,41 @@ def delete_customer(customer_id: int):
 
 def _validate(data: dict, is_update: bool = False) -> list:
     errors = []
-    if not is_update and not data.get("name", "").strip():
-        errors.append({"field": "name", "msg": "Name is required"})
+    name = (data.get("name") or "").strip()
+    if not is_update and not name:
+        errors.append(build_error("name", "VALIDATION_REQUIRED", "Name is required"))
+    if data.get("email") and not validate_email(data["email"]):
+        errors.append(build_error("email", "VALIDATION_EMAIL", "Invalid email"))
+    if data.get("phone") and not validate_phone_br(data["phone"]):
+        errors.append(build_error("phone", "VALIDATION_PHONE", "Invalid phone"))
+    if data.get("zip_code") and not validate_cep(data["zip_code"]):
+        errors.append(build_error("zip_code", "VALIDATION_CEP", "Invalid ZIP code"))
+    if data.get("state") and not validate_uf(data["state"]):
+        errors.append(build_error("state", "VALIDATION_UF", "Invalid UF"))
+    if data.get("document") and not validate_document(data["document"], data.get("person_type", "PF")):
+        errors.append(build_error("document", "VALIDATION_DOCUMENT", "Invalid CPF/CNPJ"))
+    if data.get("birth_date") and not validate_date_iso(data["birth_date"]):
+        errors.append(build_error("birth_date", "VALIDATION_DATE", "Invalid date"))
+    if data.get("credit_limit") is not None and not validate_positive_decimal(data["credit_limit"]):
+        errors.append(build_error("credit_limit", "VALIDATION_POSITIVE", "Must be non-negative"))
     return errors
 
 
 def _clean(data: dict) -> dict:
-    allowed = {"name", "email", "phone", "document", "address", "city", "state", "zip_code", "status"}
+    allowed = {"name", "person_type", "email", "phone", "document",
+               "birth_date", "credit_limit", "address", "city", "state", "zip_code", "status"}
     return {k: v for k, v in data.items() if k in allowed}
 
 
 def _out(c) -> dict:
     return {
-        "id": c.id, "name": c.name, "email": c.email, "phone": c.phone,
-        "document": c.document, "address": c.address, "city": c.city,
+        "id": c.id, "name": c.name,
+        "person_type": getattr(c, "person_type", "PF"),
+        "email": c.email, "phone": c.phone,
+        "document": c.document,
+        "birth_date": c.birth_date.isoformat() if getattr(c, "birth_date", None) else None,
+        "credit_limit": float(c.credit_limit) if getattr(c, "credit_limit", None) is not None else 0,
+        "address": c.address, "city": c.city,
         "state": c.state, "zip_code": c.zip_code, "status": c.status,
         "created_at": c.created_at.isoformat() if c.created_at else None,
     }

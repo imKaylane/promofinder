@@ -1,11 +1,14 @@
 """
 GestãoPro — Blueprint de Produtos (EX3 + EX4)
-CRUD completo: GET(list), GET(detail), POST, PUT, DELETE
+CRUD completo: GET(list), GET(detail), POST, PUT, PATCH, DELETE
 Autenticação: JWT Bearer token
 Validação: frontend + backend
 Paginação + busca + filtros
 """
+import logging
 from flask import Blueprint, request, jsonify, g
+
+logger = logging.getLogger(__name__)
 
 import app.models.database as _db
 def get_db(): return _db.get_db()
@@ -76,9 +79,10 @@ def create_product():
                    f"Product '{product.name}' created")
         db.commit()
         return jsonify(_product_out(product)), 201
-    except Exception as e:
+    except Exception:
         db.rollback()
-        return jsonify({"detail": str(e)}), 500
+        logger.exception("Error creating product")
+        return jsonify({"detail": "Internal server error"}), 500
     finally:
         db.close()
 
@@ -111,9 +115,10 @@ def update_product(product_id: int):
                    f"Product '{updated.name}' updated")
         db.commit()
         return jsonify(_product_out(updated))
-    except Exception as e:
+    except Exception:
         db.rollback()
-        return jsonify({"detail": str(e)}), 500
+        logger.exception("Error updating product %d", product_id)
+        return jsonify({"detail": "Internal server error"}), 500
     finally:
         db.close()
 
@@ -135,9 +140,10 @@ def delete_product(product_id: int):
                    f"Product '{name}' deleted")
         db.commit()
         return "", 204
-    except Exception as e:
+    except Exception:
         db.rollback()
-        return jsonify({"detail": str(e)}), 500
+        logger.exception("Error deleting product %d", product_id)
+        return jsonify({"detail": "Internal server error"}), 500
     finally:
         db.close()
 
@@ -145,25 +151,27 @@ def delete_product(product_id: int):
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _validate_product(data: dict, is_update: bool = False) -> list:
+    from app.services.validators import validate_positive_decimal, build_error
     errors = []
     if not is_update:
         if not data.get("name", "").strip():
-            errors.append({"field": "name", "msg": "Name is required"})
+            errors.append(build_error("name", "VALIDATION_REQUIRED", "Name is required"))
         if not data.get("sku", "").strip():
-            errors.append({"field": "sku", "msg": "SKU is required"})
-    if "price" in data:
-        try:
-            v = float(data["price"])
-            if v < 0:
-                errors.append({"field": "price", "msg": "Price must be non-negative"})
-        except (TypeError, ValueError):
-            errors.append({"field": "price", "msg": "Price must be a number"})
+            errors.append(build_error("sku", "VALIDATION_REQUIRED", "SKU is required"))
+    if "price" in data and not validate_positive_decimal(data["price"]):
+        errors.append(build_error("price", "VALIDATION_POSITIVE", "Price must be non-negative"))
+    if "cost" in data and data["cost"] is not None and not validate_positive_decimal(data["cost"]):
+        errors.append(build_error("cost", "VALIDATION_POSITIVE", "Cost must be non-negative"))
+    if data.get("release_date"):
+        from app.services.validators import validate_date_iso
+        if not validate_date_iso(data["release_date"]):
+            errors.append(build_error("release_date", "VALIDATION_DATE", "Invalid date"))
     return errors
 
 
 def _clean_product(data: dict) -> dict:
     allowed = {"name", "sku", "category_id", "price", "cost", "stock_qty",
-               "unit", "description", "status"}
+               "unit", "description", "release_date", "status"}
     return {k: v for k, v in data.items() if k in allowed}
 
 
@@ -179,6 +187,7 @@ def _product_out(p) -> dict:
         "stock_qty": int(p.stock_qty or 0),
         "unit": p.unit,
         "description": p.description,
+        "release_date": p.release_date.isoformat() if getattr(p, "release_date", None) else None,
         "status": p.status,
         "created_at": p.created_at.isoformat() if p.created_at else None,
         "updated_at": p.updated_at.isoformat() if p.updated_at else None,
