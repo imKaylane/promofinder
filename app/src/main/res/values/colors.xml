@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base Dark Colors -->
+    <color name="bg_dark">#121212</color>
+    <color name="surface_dark">#1E1E1E</color>
+    <color name="card_bg">#252525</color>
+    <color name="card_border">#333333</color>
+
+    <!-- Accent & Highlights -->
+    <color name="green_accent">#00E676</color>
+    <color name="green_dark">#00C853</color>
+    <color name="green_light_bg">#1A00E676</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#B0B0B0</color>
+    <color name="text_muted">#757575</color>
+
+    <!-- Price Status -->
+    <color name="price_green">#00E676</color>
+    <color name="price_red">#FF5252</color>
+    <color name="discount_badge_bg">#CC00E676</color>
+    <color name="discount_badge_text">#000000</color>
+
+    <!-- UI Elements -->
+    <color name="divider_color">#2C2C2C</color>
+    <color name="chip_bg">#2D2D2D</color>
+    <color name="chip_selected_bg">#00E676</color>
+    <color name="chip_selected_text">#000000</color>
+    <color name="marketplace_badge_bg">#1E293B</color>
+    <color name="marketplace_badge_text">#38BDF8</color>
+
+    <!-- Standard compatibility colors -->
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="transparent">#00000000</color>
+</resources>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PromoFinder</string>
+    <string name="tagline">Localizador Inteligente de Ofertas</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Início</string>
+    <string name="nav_search">Buscar</string>
+    <string name="nav_favorites">Favoritos</string>
+    <string name="nav_alerts">Alertas</string>
+    <string name="nav_profile">Perfil</string>
+
+    <!-- Home Sections -->
+    <string name="search_placeholder">Pesquisar ofertas, marcas ou produtos...</string>
+    <string name="categories_title">Categorias</string>
+    <string name="featured_deals">Ofertas em Destaque</string>
+    <string name="recently_added">Adicionados Recentemente</string>
+    <string name="top_price_drops">Maior Redução de Preço</string>
+    <string name="view_all">Ver tudo</string>
+
+    <!-- Categories -->
+    <string name="cat_informatica">Informática</string>
+    <string name="cat_hardware">Hardware</string>
+    <string name="cat_perifericos">Periféricos</string>
+    <string name="cat_games">Games</string>
+    <string name="cat_instrumentos">Instrumentos M.</string>
+    <string name="cat_eletronicos">Eletrônicos</string>
+    <string name="cat_acessorios">Acessórios</string>
+    <string name="cat_all">Todas</string>
+
+    <!-- Search & Filters -->
+    <string name="search_title">Pesquisar Produtos</string>
+    <string name="sort_lowest_price">Menor preço</string>
+    <string name="sort_highest_discount">Maior desconto</string>
+    <string name="sort_relevance">Relevância</string>
+    <string name="filter_price_range">Faixa de preço</string>
+    <string name="min_price">Mínimo (R$)</string>
+    <string name="max_price">Máximo (R$)</string>
+    <string name="apply_filter">Aplicar Filtro</string>
+    <string name="no_results">Nenhum produto encontrado para sua busca.</string>
+
+    <!-- Product Details -->
+    <string name="product_details">Detalhes da Oferta</string>
+    <string name="view_offer">Ver Oferta no Site</string>
+    <string name="add_to_favorites">Salvar nos Favoritos</string>
+    <string name="remove_favorite">Remover dos Favoritos</string>
+    <string name="track_price">Acompanhar Preço</string>
+    <string name="price_history">Histórico de Preços</string>
+    <string name="description">Descrição</string>
+    <string name="marketplace_seller">Vendido por</string>
+
+    <!-- Favorites -->
+    <string name="favorites_title">Meus Favoritos</string>
+    <string name="favorites_empty">Você ainda não salvou nenhum produto.</string>
+
+    <!-- Price Alerts -->
+    <string name="alerts_title">Monitoramento de Preços</string>
+    <string name="alerts_empty">Nenhum produto está sendo monitorado no momento.</string>
+    <string name="target_price">Preço desejado: %s</string>
+    <string name="current_price">Preço atual: %s</string>
+    <string name="set_target_price">Definir preço desejado (R$):</string>
+    <string name="activate_alert">Ativar Monitoramento</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Perfil e Configurações</string>
+    <string name="user_name">Usuário PromoFinder</string>
+    <string name="user_email">usuario@promofinder.com</string>
+    <string name="notifications_settings">Configurações de Notificação</string>
+    <string name="enable_price_alerts">Notificações de Alerta de Preço</string>
+    <string name="enable_promos">Notificações de Ofertas Especiais</string>
+    <string name="about_app">Sobre o PromoFinder</string>
+    <string name="app_version">Versão 1.0.0 (Beta)</string>
+    <string name="sync_status">Status de Sincronização Web: Preparado</string>
+    <string name="about_description">O PromoFinder é a sua ferramenta inteligente para buscar, comparar e monitorar o melhor preço em marketplaces como o Mercado Livre.</string>
+
+    <!-- Actions & Common -->
+    <string name="cancel">Cancelar</string>
+    <string name="save">Salvar</string>
+    <string name="delete">Excluir</string>
+    <string name="test_notification">Simular Notificação de Oferta</string>
+</resources>
